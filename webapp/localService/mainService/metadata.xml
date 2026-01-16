@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:sap="http://www.sap.com/Protocols/SAPData">
+    <edmx:DataServices m:DataServiceVersion="2.0">
+        <Schema Namespace="ZEX_ORDERS_SRV" xml:lang="en" sap:schema-version="1" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
+            <EntityType Name="ZET_lista_ordini" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="NumOrdine"/>
+                </Key>
+                <Property Name="NumOrdine" Type="Edm.Int16" Nullable="false" sap:unicode="false" sap:label="Numero ordine" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="Cliente" Type="Edm.String" MaxLength="50" sap:unicode="false" sap:label="c" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="DataOrdine" Type="Edm.DateTime" Precision="0" sap:unicode="false" sap:label="Time Stamp" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="ImportoTot" Type="Edm.Int16" sap:unicode="false" sap:label="Counter" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Stato" Type="Edm.Int16" sap:unicode="false" sap:label="Stato ordine" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="StatoTxt" Type="Edm.String" MaxLength="30" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+            </EntityType>
+            <EntityType Name="ZET_dettagli_ordini" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="NumOrdine"/>
+                    <PropertyRef Name="CodArticolo"/>
+                </Key>
+                <Property Name="NumOrdine" Type="Edm.Int16" Nullable="false" sap:unicode="false" sap:label="Numero ordine" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="CodArticolo" Type="Edm.Int16" Nullable="false" sap:unicode="false" sap:label="Dummy" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="NomeArticolo" Type="Edm.String" MaxLength="50" sap:unicode="false" sap:label="c" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="QuantitaOrdine" Type="Edm.Int16" sap:unicode="false" sap:label="Two-digit no." sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Importo" Type="Edm.Int16" sap:unicode="false" sap:label="Counter" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="ZET_articoli" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="CodArticolo"/>
+                </Key>
+                <Property Name="CodArticolo" Type="Edm.Int16" Nullable="false" sap:unicode="false" sap:label="Dummy" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="NomeArticolo" Type="Edm.String" MaxLength="50" sap:unicode="false" sap:label="c" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="Importo" Type="Edm.Int16" sap:unicode="false" sap:label="Counter" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="QuantitaDisp" Type="Edm.Int16" sap:unicode="false" sap:label="Two-digit no." sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="ZET_DeepOrdini" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="NumOrdine"/>
+                </Key>
+                <Property Name="Operation" Type="Edm.String" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="NumOrdine" Type="Edm.Int16" Nullable="false" sap:unicode="false" sap:label="Numero ordine" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <NavigationProperty Name="ZET_dettagli_ordiniSet" Relationship="ZEX_ORDERS_SRV.DeepOrdiniToZETDettagliOrdini" FromRole="FromRole_DeepOrdiniToZETDettagliOrdini" ToRole="ToRole_DeepOrdiniToZETDettagliOrdini"/>
+                <NavigationProperty Name="ZET_lista_ordini" Relationship="ZEX_ORDERS_SRV.DeepOrdiniToZETListaOrdini" FromRole="FromRole_DeepOrdiniToZETListaOrdini" ToRole="ToRole_DeepOrdiniToZETListaOrdini"/>
+            </EntityType>
+            <Association Name="DeepOrdiniToZETListaOrdini" sap:content-version="1">
+                <End Type="ZEX_ORDERS_SRV.ZET_DeepOrdini" Multiplicity="0..1" Role="FromRole_DeepOrdiniToZETListaOrdini"/>
+                <End Type="ZEX_ORDERS_SRV.ZET_lista_ordini" Multiplicity="1" Role="ToRole_DeepOrdiniToZETListaOrdini"/>
+                <ReferentialConstraint>
+                    <Principal Role="FromRole_DeepOrdiniToZETListaOrdini">
+                        <PropertyRef Name="NumOrdine"/>
+                    </Principal>
+                    <Dependent Role="ToRole_DeepOrdiniToZETListaOrdini">
+                        <PropertyRef Name="NumOrdine"/>
+                    </Dependent>
+                </ReferentialConstraint>
+            </Association>
+            <Association Name="DeepOrdiniToZETDettagliOrdini" sap:content-version="1">
+                <End Type="ZEX_ORDERS_SRV.ZET_DeepOrdini" Multiplicity="0..1" Role="FromRole_DeepOrdiniToZETDettagliOrdini"/>
+                <End Type="ZEX_ORDERS_SRV.ZET_dettagli_ordini" Multiplicity="*" Role="ToRole_DeepOrdiniToZETDettagliOrdini"/>
+                <ReferentialConstraint>
+                    <Principal Role="FromRole_DeepOrdiniToZETDettagliOrdini">
+                        <PropertyRef Name="NumOrdine"/>
+                    </Principal>
+                    <Dependent Role="ToRole_DeepOrdiniToZETDettagliOrdini">
+                        <PropertyRef Name="NumOrdine"/>
+                    </Dependent>
+                </ReferentialConstraint>
+            </Association>
+            <EntityContainer Name="ZEX_ORDERS_SRV_Entities" m:IsDefaultEntityContainer="true" sap:supported-formats="atom json xlsx">
+                <EntitySet Name="ZES_lista_ordiniSet" EntityType="ZEX_ORDERS_SRV.ZET_lista_ordini" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="ZES_dettagli_ordiniSet" EntityType="ZEX_ORDERS_SRV.ZET_dettagli_ordini" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="ZES_articoliSet" EntityType="ZEX_ORDERS_SRV.ZET_articoli" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="ZES_DeepOrdiniSet" EntityType="ZEX_ORDERS_SRV.ZET_DeepOrdini" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <AssociationSet Name="DeepOrdiniToZETDettagliOrdiniSet" Association="ZEX_ORDERS_SRV.DeepOrdiniToZETDettagliOrdini" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="ZES_DeepOrdiniSet" Role="FromRole_DeepOrdiniToZETDettagliOrdini"/>
+                    <End EntitySet="ZES_dettagli_ordiniSet" Role="ToRole_DeepOrdiniToZETDettagliOrdini"/>
+                </AssociationSet>
+                <AssociationSet Name="DeepOrdiniToZETListaOrdiniSet" Association="ZEX_ORDERS_SRV.DeepOrdiniToZETListaOrdini" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="ZES_DeepOrdiniSet" Role="FromRole_DeepOrdiniToZETListaOrdini"/>
+                    <End EntitySet="ZES_lista_ordiniSet" Role="ToRole_DeepOrdiniToZETListaOrdini"/>
+                </AssociationSet>
+            </EntityContainer>
+            <atom:link rel="self" href="http://65.109.172.114:8000/sap/opu/odata/sap/ZEX_ORDERS_SRV/$metadata" xmlns:atom="http://www.w3.org/2005/Atom"/>
+            <atom:link rel="latest-version" href="http://65.109.172.114:8000/sap/opu/odata/sap/ZEX_ORDERS_SRV/$metadata" xmlns:atom="http://www.w3.org/2005/Atom"/>
+        </Schema>
+    </edmx:DataServices>
+</edmx:Edmx>
