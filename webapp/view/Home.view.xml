@@ -11,7 +11,6 @@
 
                 <headerToolbar>
                     <OverflowToolbar>
-                        <Title id="titoloTotale" text="Totale: 0.00 €" level="H2" />
                         <ToolbarSpacer />
                         <Button icon="sap-icon://add" text="Nuovo Ordine" type="Emphasized" press=".onOpenAddDialog" />
                     </OverflowToolbar>
@@ -40,6 +39,25 @@
                 </items>
 
             </Table>
+
+            <VBox class="sapUiSmallMargin" alignItems="End">
+            
+                <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                    <Label text="Totale Ordini:" design="Bold" class="sapUiSmallMarginEnd" />
+                    <Text id="txtTotaleOrdini" text="0" />
+                </HBox>
+                
+                <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                    <Label text="Pezzi Venduti:" design="Bold" class="sapUiSmallMarginEnd" />
+                    <Text id="txtPezziVenduti" text="0" />
+                </HBox>
+                
+                <HBox alignItems="Center">
+                    <Label text="Valore Totale:" design="Bold" class="sapUiSmallMarginEnd" />
+                    <ObjectNumber id="numValoreTotale" number="0.00" unit="€" state="Success" />
+                </HBox>
+
+            </VBox>
 
         </content>
 

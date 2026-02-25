@@ -17,29 +17,40 @@ sap.ui.define([
 
         // 2. Il "Ragioniere": calcola fisicamente il totale
         _calculateTotal: function () {
-            // Prendiamo il modello dati e la lista degli ordini
             var oModel = this.getView().getModel("ordersModel");
             var aOrders = oModel.getProperty("/Orders");
 
-            var fTotal = 0; // Partiamo da zero
+            var iPezzi = 0;   // Contatore per i pezzi fisici
+            var fValore = 0;  // Contatore per i soldi
 
-            // Se ci sono degli ordini, facciamo un ciclo (loop) su tutti
             if (aOrders) {
                 for (var i = 0; i < aOrders.length; i++) {
-                    // Moltiplichiamo il prezzo per la quantità e lo aggiungiamo al totale
-                    fTotal += (aOrders[i].UnitPrice * aOrders[i].Quantity);
+                    // Sommiamo le quantità
+                    iPezzi += aOrders[i].Quantity;
+                    // Sommiamo i soldi (Prezzo * Quantità)
+                    fValore += (aOrders[i].UnitPrice * aOrders[i].Quantity);
                 }
             }
 
-            // Andiamo a prendere il Titolo in cima alla tabella tramite il suo ID
-            var oTitle = this.byId("titoloTotale");
+            // Andiamo a prendere i tre blocchi visivi tramite i loro ID aggiornati
+            var oTxtOrdini = this.byId("txtTotaleOrdini");
+            var oTxtPezzi = this.byId("txtPezziVenduti");
+            var oNumValore = this.byId("numValoreTotale");
 
-            // Se il titolo esiste, aggiorniamo il suo testo con il numero formattato (2 decimali)
-            if (oTitle) {
-                oTitle.setText("Totale: " + fTotal.toFixed(2) + " €");
+            // Aggiorniamo i numeri (usando setText per i testi normali, e setNumber per i soldi)
+            if (oTxtOrdini) {
+                oTxtOrdini.setText(aOrders ? aOrders.length : 0);
+            }
+            if (oTxtPezzi) {
+                oTxtPezzi.setText(iPezzi);
+            }
+            if (oNumValore) {
+                oNumValore.setNumber(fValore.toFixed(2));
             }
         },
 
+
+        //Elimina un ordine
         onDeleteOrder: function (oEvent) {
             // 1. Capire quale riga è stata cliccata (Il famoso Binding Context!)
             var oItem = oEvent.getParameter("listItem");
@@ -59,7 +70,7 @@ sap.ui.define([
             oModel.refresh(true);
         },
 
-        //Facciamo funzionare il bottone e il pop-up
+        //Facciamo funzionare il bottone e il pop-up per creare un ordine nuovo
         // 1. Apre il Pop-up quando clicchi "Nuovo Ordine"
         onOpenAddDialog: function () {
             this.byId("addOrderDialog").open();
