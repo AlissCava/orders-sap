@@ -1,0 +1,40 @@
+{
+  "Orders": [
+    {
+      "OrderID": "ORD-1001",
+      "CustomerName": "Tech Solutions SPA",
+      "Product": "Laptop Pro 15",
+      "Quantity": 5,
+      "UnitPrice": 1200.00,
+      "Status": "Completato",
+      "OrderDate": "2026-02-20"
+    },
+    {
+      "OrderID": "ORD-1002",
+      "CustomerName": "Mario Rossi",
+      "Product": "Monitor 27 4K",
+      "Quantity": 2,
+      "UnitPrice": 350.50,
+      "Status": "In Lavorazione",
+      "OrderDate": "2026-02-22"
+    },
+    {
+      "OrderID": "ORD-1003",
+      "CustomerName": "Design Studio SRL",
+      "Product": "Tavoletta Grafica",
+      "Quantity": 1,
+      "UnitPrice": 850.00,
+      "Status": "Spedito",
+      "OrderDate": "2026-02-23"
+    },
+    {
+      "OrderID": "ORD-1004",
+      "CustomerName": "Luca Bianchi",
+      "Product": "Tastiera Meccanica",
+      "Quantity": 3,
+      "UnitPrice": 120.00,
+      "Status": "Cancellato",
+      "OrderDate": "2026-02-24"
+    }
+  ]
+}

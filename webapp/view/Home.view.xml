@@ -1,6 +1,39 @@
-<mvc:View controllerName="orders.controller.Home"
+<mvc:View
+    controllerName="orders.controller.Home"
     xmlns:mvc="sap.ui.core.mvc"
-    xmlns="sap.m">
-    <Page id="page" title="{i18n>title}">
+    displayBlock="true"
+    xmlns="sap.m"> 
+
+    <Page id="page" title="Gestione Ordini">
+        <content>
+            
+            <Table id="ordersTable" items="{ordersModel>/Orders}" mode="Delete" delete=".onDeleteOrder">
+                
+                <columns>
+                    <Column><Text text="ID Ordine" /></Column>
+                    <Column><Text text="Cliente" /></Column>
+                    <Column><Text text="Prodotto" /></Column>
+                    <Column><Text text="Quantità" /></Column>
+                    <Column><Text text="Prezzo" /></Column>
+                    <Column><Text text="Stato" /></Column>
+                </columns>
+
+                <items>
+                    <ColumnListItem>
+                        <cells>
+                            <Text text="{ordersModel>OrderID}" />
+                            <Text text="{ordersModel>CustomerName}" />
+                            <Text text="{ordersModel>Product}" />
+                            <Text text="{ordersModel>Quantity}" />
+                            <Text text="{ordersModel>UnitPrice} €" />
+                            <Text text="{ordersModel>Status}" />
+                        </cells>
+                    </ColumnListItem>
+                </items>
+
+            </Table>
+
+        </content>
     </Page>
+
 </mvc:View>

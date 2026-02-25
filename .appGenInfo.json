@@ -1,24 +1,113 @@
 {
-  "generationParameters": {
-    "generationDate": "Fri Jan 16 2026 09:26:13 GMT+0000 (Coordinated Universal Time)",
-    "generatorPlatform": "SAP Business Application Studio",
-    "serviceType": "SAP System (ABAP On-Premise)",
-    "metadataFilename": "",
-    "serviceUrl": "http://65.109.172.114:8000/sap/opu/odata/sap/ZEX_ORDERS_SRV",
-    "appName": "orders",
-    "appTitle": "orders",
-    "appDescription": "An SAP Fiori application.",
-    "appNamespace": "",
-    "ui5Theme": "sap_horizon",
-    "ui5Version": "1.143.2",
-    "enableCodeAssist": false,
-    "enableEslint": false,
-    "enableTypeScript": false,
-    "showMockDataInfo": true,
-    "generatorVersion": "1.20.0",
-    "template": "Basic V2",
-    "generatorName": "SAP Fiori Application Generator",
-    "entityRelatedConfig": [],
-    "launchText": "To launch the generated application, run the following from the generated application root folder:\n\n```\n    npm start\n```"
+  "_version": "1.76.0",
+  "sap.app": {
+    "id": "orders",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:basic",
+      "version": "1.20.0",
+      "toolsId": "82db8423-aa15-4895-873b-5219eb1a99f2"
+    },
+    "dataSources": {
+      "mainService": {
+        "uri": "/sap/opu/odata/sap/ZEX_ORDERS_SRV/",
+        "type": "OData",
+        "settings": {
+          "annotations": [],
+          "localUri": "localService/mainService/metadata.xml",
+          "odataVersion": "2.0"
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": false,
+    "dependencies": {
+      "minUI5Version": "1.143.2",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "ordermanagement.i18n.i18n"
+        }
+      },
+      "ordersModel": {
+        "type": "sap.ui.model.json.JSONModel",
+        "uri": "model/orders.json"
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ]
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "controlAggregation": "pages",
+        "controlId": "app",
+        "transition": "slide",
+        "type": "View",
+        "viewType": "XML",
+        "path": "orders.view",
+        "async": true,
+        "viewPath": "orders.view"
+      },
+      "routes": [
+        {
+          "name": "RouteHome",
+          "pattern": ":?query:",
+          "target": [
+            "TargetHome"
+          ]
+        }
+      ],
+      "targets": {
+        "TargetHome": {
+          "id": "Home",
+          "name": "Home"
+        }
+      }
+    },
+    "rootView": {
+      "viewName": "orders.view.App",
+      "type": "XML",
+      "id": "App",
+      "async": true
+    }
   }
 }
