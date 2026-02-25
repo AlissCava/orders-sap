@@ -20,26 +20,30 @@ sap.ui.define([
             var oModel = this.getView().getModel("ordersModel");
             var aOrders = oModel.getProperty("/Orders");
 
-            var iPezzi = 0;   // Contatore per i pezzi fisici
-            var fValore = 0;  // Contatore per i soldi
+            var iOrdiniValidi = 0; // Nuovo contatore per gli ordini reali
+            var iPezzi = 0;
+            var fValore = 0;
 
             if (aOrders) {
                 for (var i = 0; i < aOrders.length; i++) {
-                    // Sommiamo le quantità
-                    iPezzi += aOrders[i].Quantity;
-                    // Sommiamo i soldi (Prezzo * Quantità)
-                    fValore += (aOrders[i].UnitPrice * aOrders[i].Quantity);
+
+                    // Controlliamo che lo stato NON sia "Cancellato"
+                    if (aOrders[i].Status !== "Cancellato") {
+
+                        iOrdiniValidi++; // Aumenta di 1 il numero di ordini validi
+                        iPezzi += aOrders[i].Quantity; // Somma i pezzi
+                        fValore += (aOrders[i].UnitPrice * aOrders[i].Quantity); // Somma i soldi
+
+                    }
                 }
             }
 
-            // Andiamo a prendere i tre blocchi visivi tramite i loro ID aggiornati
             var oTxtOrdini = this.byId("txtTotaleOrdini");
             var oTxtPezzi = this.byId("txtPezziVenduti");
             var oNumValore = this.byId("numValoreTotale");
 
-            // Aggiorniamo i numeri (usando setText per i testi normali, e setNumber per i soldi)
             if (oTxtOrdini) {
-                oTxtOrdini.setText(aOrders ? aOrders.length : 0);
+                oTxtOrdini.setText(iOrdiniValidi); // Usiamo il nuovo contatore filtrato!
             }
             if (oTxtPezzi) {
                 oTxtPezzi.setText(iPezzi);
