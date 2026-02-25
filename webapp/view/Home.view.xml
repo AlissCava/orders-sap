@@ -7,7 +7,15 @@
     <Page id="page" title="Gestione Ordini">
         <content>
             
-            <Table id="ordersTable" items="{ordersModel>/Orders}" mode="Delete" delete=".onDeleteOrder">
+            <Table id="ordersTable" items="{ordersModel>/Orders}" mode="Delete" delete=".onDeleteOrder" updateFinished=".onTableUpdateFinished">
+
+                <headerToolbar>
+                    <OverflowToolbar>
+                        <Title id="titoloTotale" text="Totale: 0.00 €" level="H2" />
+                        <ToolbarSpacer />
+                        <Button icon="sap-icon://add" text="Nuovo Ordine" type="Emphasized" press=".onOpenAddDialog" />
+                    </OverflowToolbar>
+                </headerToolbar>
                 
                 <columns>
                     <Column><Text text="ID Ordine" /></Column>
@@ -34,6 +42,34 @@
             </Table>
 
         </content>
+
+        <dependents>
+            <Dialog id="addOrderDialog" title="Crea Nuovo Ordine" contentWidth="400px">
+                
+                <content>
+                    <VBox class="sapUiSmallMargin">
+                        <Label text="Nome Cliente" />
+                        <Input id="inputCustomer" placeholder="Es. Mario Rossi" />
+                        
+                        <Label text="Prodotto" class="sapUiTinyMarginTop"/>
+                        <Input id="inputProduct" placeholder="Es. Laptop" />
+                        
+                        <Label text="Quantità" class="sapUiTinyMarginTop"/>
+                        <Input id="inputQuantity" type="Number" placeholder="Es. 1" />
+                        
+                        <Label text="Prezzo Unitario (€)" class="sapUiTinyMarginTop"/>
+                        <Input id="inputPrice" type="Number" placeholder="Es. 150.00" />
+                    </VBox>
+                </content>
+
+                <buttons>
+                    <Button text="Salva" type="Emphasized" press=".onSaveOrder" />
+                    <Button text="Annulla" type="Transparent" press=".onCancelOrder" />
+                </buttons>
+
+            </Dialog>
+        </dependents>
+
     </Page>
 
 </mvc:View>
