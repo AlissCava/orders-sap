@@ -17,38 +17,50 @@ sap.ui.define([
 
         // 2. Il "Ragioniere": calcola fisicamente il totale
         _calculateTotal: function () {
+            // 1. Recuperiamo il modello dati e la lista completa degli ordini
             var oModel = this.getView().getModel("ordersModel");
             var aOrders = oModel.getProperty("/Orders");
 
-            var iOrdiniValidi = 0; // Nuovo contatore per gli ordini reali
-            var iPezzi = 0;
-            var fValore = 0;
+            // 2. Prepariamo i nostri contatori partendo da zero
+            var iOrdiniValidi = 0; // Conta solo gli ordini reali (esclude i cancellati)
+            var iPezzi = 0;        // Conta la quantità totale di articoli
+            var fValore = 0;       // Conta il fatturato totale in Euro
 
+            // 3. Controlliamo che la lista ordini esista (per evitare errori se è vuota)
             if (aOrders) {
+
+                // Facciamo un ciclo (loop) passando in rassegna ogni singolo ordine
                 for (var i = 0; i < aOrders.length; i++) {
 
-                    // Controlliamo che lo stato NON sia "Cancellato"
+                    // 4. IL FILTRO: Consideriamo solo gli ordini che NON sono "Cancellati"
+                    // In JavaScript il simbolo !== significa "diverso da"
                     if (aOrders[i].Status !== "Cancellato") {
 
-                        iOrdiniValidi++; // Aumenta di 1 il numero di ordini validi
-                        iPezzi += aOrders[i].Quantity; // Somma i pezzi
+                        // Aggiorniamo i contatori solo per gli ordini validi
+                        iOrdiniValidi++; // Aggiunge 1 al numero di ordini
+
+                        iPezzi += aOrders[i].Quantity; // Somma le quantità fisiche
+
                         fValore += (aOrders[i].UnitPrice * aOrders[i].Quantity); // Somma i soldi
 
                     }
                 }
             }
 
+            // 5. Andiamo a cercare i tre contenitori nell'interfaccia usando i loro ID
             var oTxtOrdini = this.byId("txtTotaleOrdini");
             var oTxtPezzi = this.byId("txtPezziVenduti");
             var oNumValore = this.byId("numValoreTotale");
 
+            // 6. Inseriamo i risultati calcolati dentro l'interfaccia visiva
             if (oTxtOrdini) {
-                oTxtOrdini.setText(iOrdiniValidi); // Usiamo il nuovo contatore filtrato!
+                oTxtOrdini.setText(iOrdiniValidi);
             }
             if (oTxtPezzi) {
                 oTxtPezzi.setText(iPezzi);
             }
             if (oNumValore) {
+                // toFixed(2) formatta il numero forzando sempre due decimali (es. 150.00)
                 oNumValore.setNumber(fValore.toFixed(2));
             }
         },
