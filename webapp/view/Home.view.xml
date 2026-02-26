@@ -11,6 +11,7 @@
 
                 <headerToolbar>
                     <OverflowToolbar>
+                        <Button icon="sap-icon://excel-attachment" text="Esporta Excel" press=".onExport" />
                         <ToolbarSpacer />
                         <Button icon="sap-icon://add" text="Nuovo Ordine" type="Emphasized" press=".onOpenAddDialog" />
                     </OverflowToolbar>

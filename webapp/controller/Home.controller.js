@@ -1,6 +1,7 @@
 sap.ui.define([
-    "sap/ui/core/mvc/Controller"
-], function (Controller) {
+    "sap/ui/core/mvc/Controller",
+    "sap/ui/export/Spreadsheet"
+], function (Controller, Spreadsheet) {
     "use strict";
 
     return Controller.extend("orders.controller.Home", {
@@ -65,6 +66,40 @@ sap.ui.define([
             }
         },
 
+        // Funzione per esportare i dati della tabella in un file Excel
+        onExport: function () {
+
+            // 1. Definiamo quali colonne vogliamo nel file Excel e a quali dati corrispondono
+            // La "label" è il titolo della colonna su Excel, la "property" è il nome esatto nel JSON
+            var aCols = [
+                { label: "ID Ordine", property: "OrderID" },
+                { label: "Cliente", property: "CustomerName" },
+                { label: "Prodotto", property: "Product" },
+                { label: "Quantità", property: "Quantity" },
+                { label: "Prezzo Unitario (€)", property: "UnitPrice" },
+                { label: "Stato", property: "Status" },
+                { label: "Data Ordine", property: "OrderDate" }
+            ];
+
+            // 2. Recuperiamo l'intera lista degli ordini dal nostro modello dati
+            var oModel = this.getView().getModel("ordersModel");
+            var aOrders = oModel.getProperty("/Orders");
+
+            // 3. Creiamo le "Istruzioni di montaggio" per il file Excel
+            var oSettings = {
+                workbook: { columns: aCols }, // Diciamo quali colonne usare
+                dataSource: aOrders,          // Passiamo i dati da inserire
+                fileName: "Elenco_Ordini_SAP.xlsx" // Diamo un nome al file scaricato
+            };
+
+            // 4. Creiamo materialmente il file e forziamo il download
+            var oSheet = new Spreadsheet(oSettings);
+
+            oSheet.build().finally(function () {
+                // Puliamo la memoria dell'applicazione una volta finito il download
+                oSheet.destroy();
+            });
+        },
 
         //Elimina un ordine
         onDeleteOrder: function (oEvent) {
