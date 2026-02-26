@@ -1,7 +1,9 @@
 sap.ui.define([
     "sap/ui/core/mvc/Controller",
-    "sap/ui/export/Spreadsheet"
-], function (Controller, Spreadsheet) {
+    "sap/ui/export/Spreadsheet",
+    "sap/ui/model/Filter",
+    "sap/ui/model/FilterOperator"
+], function (Controller, Spreadsheet, Filter, FilterOperator) {
     "use strict";
 
     return Controller.extend("orders.controller.Home", {
@@ -99,6 +101,44 @@ sap.ui.define([
                 // Puliamo la memoria dell'applicazione una volta finito il download
                 oSheet.destroy();
             });
+        },
+
+        // Funzione che scatta ogni volta che scriviamo o cancelliamo qualcosa nella barra di ricerca
+        onSearch: function (oEvent) {
+
+            // 1. Leggiamo il testo esatto digitato dall'utente
+            var sQuery = oEvent.getParameter("newValue");
+
+            // 2. Prepariamo una scatola vuota per contenere i nostri criteri di ricerca
+            var aFilters = [];
+
+            // 3. Se l'utente ha scritto qualcosa, costruiamo i filtri
+            if (sQuery && sQuery.length > 0) {
+
+                // Creiamo un filtro per la colonna "CustomerName" (Cliente)
+                var filterCustomer = new Filter("CustomerName", FilterOperator.Contains, sQuery);
+
+                // Creiamo un filtro per la colonna "Product" (Prodotto)
+                var filterProduct = new Filter("Product", FilterOperator.Contains, sQuery);
+
+                // Uniamo i due filtri per dire al sistema: "Cerca nel Cliente OPPURE nel Prodotto"
+                var combinedFilter = new Filter({
+                    filters: [filterCustomer, filterProduct],
+                    and: false // 'false' significa OR (oppure)
+                });
+
+                // Inseriamo il filtro combinato nella nostra scatola
+                aFilters.push(combinedFilter);
+            }
+
+            // 4. Andiamo a prendere la tabella tramite il suo ID
+            var oTable = this.byId("ordersTable");
+
+            // 5. Prendiamo l'elenco delle righe (items) generate dal Data Binding
+            var oBinding = oTable.getBinding("items");
+
+            // 6. Applichiamo il filtro! Le righe che non corrispondono verranno nascoste all'istante
+            oBinding.filter(aFilters);
         },
 
         //Elimina un ordine

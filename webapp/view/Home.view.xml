@@ -11,9 +11,14 @@
 
                 <headerToolbar>
                     <OverflowToolbar>
-                        <Button icon="sap-icon://excel-attachment" text="Esporta Excel" press=".onExport" />
+                        
+                        <SearchField width="300px" placeholder="Cerca cliente o prodotto..." liveChange=".onSearch" />
+                        
                         <ToolbarSpacer />
+                        
+                        <Button icon="sap-icon://excel-attachment" text="Esporta Excel" press=".onExport" />
                         <Button icon="sap-icon://add" text="Nuovo Ordine" type="Emphasized" press=".onOpenAddDialog" />
+                        
                     </OverflowToolbar>
                 </headerToolbar>
                 
