@@ -7,7 +7,7 @@
     <Page id="page" title="Gestione Ordini">
         <content>
             
-            <Table id="ordersTable" items="{ordersModel>/Orders}" mode="Delete" delete=".onDeleteOrder" updateFinished=".onTableUpdateFinished">
+           <Table id="ordersTable" items="{ordersModel>/Orders}" mode="Delete" delete=".onDeleteOrder" updateFinished=".onTableUpdateFinished" growing="true" growingThreshold="3"> 
 
                 <headerToolbar>
                     <OverflowToolbar>
