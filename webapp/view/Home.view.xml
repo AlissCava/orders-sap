@@ -78,6 +78,9 @@
                         <Label text="Prodotto" class="sapUiTinyMarginTop"/>
                         <Input id="inputProduct" placeholder="Es. Laptop" />
                         
+                        <Label text="Categoria" class="sapUiTinyMarginTop"/>
+                        <Input id="inputCategory" placeholder="Es. Hardware, Periferiche, Accessori..." />
+                        
                         <Label text="Quantità" class="sapUiTinyMarginTop"/>
                         <Input id="inputQuantity" type="Number" placeholder="Es. 1" />
                         

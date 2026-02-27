@@ -1,1 +1,117 @@
-/* Enter your custom styles here */
+/* ========================================================= */
+/* TEMA LILLA PERSONALIZZATO - ZERO BLU AMMESSO              */
+/* ========================================================= */
+
+/* 1. La barra superiore (ToolHeader) */
+.sapTntToolHeader {
+  background-color: #865894 !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.sapTntToolHeader .sapMTitle,
+.sapTntToolHeader .sapUiIcon {
+  color: #ffffff !important;
+  letter-spacing: 1px;
+}
+
+/* 2. Il bottone "Nuovo Ordine" */
+.sapMBtnEmphasized {
+  background-color: #b388ff !important;
+  border-color: #7e57c2 !important;
+  text-shadow: none !important;
+}
+
+.sapMBtnEmphasized:hover {
+  background-color: #7e57c2 !important;
+}
+
+/* 3. Bottoni trasparenti (Caccia al blu di "Esporta Excel") */
+.sapMBtnTransparent .sapMBtnIcon,
+.sapMBtnTransparent .sapMBtnContent {
+  color: #7e57c2 !important;
+  /* Lilla scuro per il testo e l'icona */
+}
+
+/* 4. Menu laterale (Caccia alla strisciolina blu) */
+.sapTntNavLIItemSelected {
+  background-color: #f3e5f5 !important;
+}
+
+.sapTntNavLIItemSelected .sapTntNavLIText,
+.sapTntNavLIItemSelected .sapTntNavLIIcon {
+  color: #7e57c2 !important;
+}
+
+/* Questa è la maledetta righina blu di selezione a sinistra! */
+.sapTntNavLIItemSelected::before {
+  background-color: #7e57c2 !important;
+}
+
+/* 5. Paginazione Tabella (Caccia al blu di "Mostra di più") */
+.sapMGrowingListTrigger .sapMSLITitle {
+  color: #7e57c2 !important;
+  font-weight: bold !important;
+}
+
+.sapMGrowingListTrigger .sapMGrowingListDescription {
+  color: #b388ff !important;
+  /* Numerini [3 / 4] in lilla chiaro */
+}
+
+/* ========================================================= */
+/* 6. IL GRAFICO A CIAMBELLA (Palette di sfumature LILLAAAAAAA)    */
+/* ========================================================= */
+
+/* Gli spicchi della ciambella */
+.sapSuiteIDCColor1 {
+  fill: #4a3052 !important;
+}
+
+/* Prugna (Completato) */
+.sapSuiteIDCColor2 {
+  fill: #7e57c2 !important;
+}
+
+/* Lilla Scuro (In Lavorazione) */
+.sapSuiteIDCColor3 {
+  fill: #b388ff !important;
+}
+
+/* Lilla Spada Laser (Spedito) */
+.sapSuiteIDCColor4 {
+  fill: #d1c4e9 !important;
+}
+
+/* Lilla Chiaro */
+.sapSuiteIDCColor5 {
+  fill: #f3e5f5 !important;
+}
+
+/* Lilla Chiarissimo */
+
+/* I quadratini della legenda di fianco al grafico */
+.sapSuiteILegendColor1 {
+  background-color: #4a3052 !important;
+}
+
+.sapSuiteILegendColor2 {
+  background-color: #7e57c2 !important;
+}
+
+.sapSuiteILegendColor3 {
+  background-color: #b388ff !important;
+}
+
+.sapSuiteILegendColor4 {
+  background-color: #d1c4e9 !important;
+}
+
+.sapSuiteILegendColor5 {
+  background-color: #f3e5f5 !important;
+}
+
+/* Bordo di separazione bianco tra gli spicchi per renderli stilosi */
+.sapSuiteIDCSegment path {
+  stroke: #ffffff !important;
+  stroke-width: 2px !important;
+}

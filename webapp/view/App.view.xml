@@ -1,7 +1,34 @@
-<mvc:View controllerName="orders.controller.App"
-    displayBlock="true"
+<mvc:View
+    controllerName="orders.controller.App"
     xmlns:mvc="sap.ui.core.mvc"
-    xmlns="sap.m">
-    <App id="app">
-    </App>
+    xmlns="sap.m"
+    xmlns:tnt="sap.tnt"
+    displayBlock="true">
+    
+    <tnt:ToolPage id="toolPage">
+        
+        <tnt:header>
+            <tnt:ToolHeader>
+                <Button id="sideNavigationToggleButton"
+                        icon="sap-icon://menu2"
+                        type="Transparent"
+                        press=".onCollapseExpandPress" />
+                <Title text="Gestione Ordini Aziendale" />
+            </tnt:ToolHeader>
+        </tnt:header>
+
+        <tnt:sideContent>
+            <tnt:SideNavigation id="sideNavigation" itemSelect=".onItemSelect">
+                <tnt:NavigationList>
+                    <tnt:NavigationListItem text="Ordini" icon="sap-icon://list" key="Home" />
+                    <tnt:NavigationListItem text="Dashboard" icon="sap-icon://bar-chart" key="Dashboard" />
+                </tnt:NavigationList>
+            </tnt:SideNavigation>
+        </tnt:sideContent>
+
+        <tnt:mainContents>
+            <App id="app" />
+        </tnt:mainContents>
+
+    </tnt:ToolPage>
 </mvc:View>
