@@ -4,31 +4,25 @@
     displayBlock="true"
     xmlns="sap.m"> 
 
-    <Page id="page" title="Gestione Ordini">
+    <Page id="page" title="{i18n>homePageTitle}">
         <content>
-            
-           <Table id="ordersTable" items="{ordersModel>/Orders}" mode="Delete" delete=".onDeleteOrder" updateFinished=".onTableUpdateFinished" growing="true" growingThreshold="3"> 
-
+            <Table id="ordersTable" items="{ordersModel>/Orders}" mode="Delete" delete=".onDeleteOrder" updateFinished=".onTableUpdateFinished" growing="true" growingThreshold="3"> 
                 <headerToolbar>
                     <OverflowToolbar>
-                        
-                        <SearchField width="300px" placeholder="Cerca cliente o prodotto..." liveChange=".onSearch" />
-                        
+                        <SearchField width="300px" placeholder="{i18n>searchPlaceholder}" liveChange=".onSearch" />
                         <ToolbarSpacer />
-                        
-                        <Button icon="sap-icon://excel-attachment" text="Esporta Excel" press=".onExport" />
-                        <Button icon="sap-icon://add" text="Nuovo Ordine" type="Emphasized" press=".onOpenAddDialog" />
-                        
+                        <Button icon="sap-icon://excel-attachment" text="{i18n>btnExportExcel}" press=".onExport" />
+                        <Button icon="sap-icon://add" text="{i18n>btnNewOrder}" type="Emphasized" press=".onOpenAddDialog" />
                     </OverflowToolbar>
                 </headerToolbar>
                 
                 <columns>
-                    <Column><Text text="ID Ordine" /></Column>
-                    <Column><Text text="Cliente" /></Column>
-                    <Column><Text text="Prodotto" /></Column>
-                    <Column><Text text="Quantità" /></Column>
-                    <Column><Text text="Prezzo" /></Column>
-                    <Column><Text text="Stato" /></Column>
+                    <Column><Text text="{i18n>colOrderID}" /></Column>
+                    <Column><Text text="{i18n>colCustomer}" /></Column>
+                    <Column><Text text="{i18n>colProduct}" /></Column>
+                    <Column><Text text="{i18n>colQuantity}" /></Column>
+                    <Column><Text text="{i18n>colPrice}" /></Column>
+                    <Column><Text text="{i18n>colStatus}" /></Column>
                 </columns>
 
                 <items>
@@ -43,60 +37,49 @@
                         </cells>
                     </ColumnListItem>
                 </items>
-
             </Table>
 
             <VBox class="sapUiSmallMargin" alignItems="End">
-            
                 <HBox alignItems="Center" class="sapUiTinyMarginBottom">
-                    <Label text="Totale Ordini:" design="Bold" class="sapUiSmallMarginEnd" />
-                    <Text id="txtTotaleOrdini" text="0" />
+                    <Label text="{i18n>lblTotalOrders}" design="Bold" class="sapUiSmallMarginEnd" />
+                    <Text text="{ordersModel>/Summary/TotalCount}" />
                 </HBox>
-                
                 <HBox alignItems="Center" class="sapUiTinyMarginBottom">
-                    <Label text="Pezzi Venduti:" design="Bold" class="sapUiSmallMarginEnd" />
-                    <Text id="txtPezziVenduti" text="0" />
+                    <Label text="{i18n>lblTotalItems}" design="Bold" class="sapUiSmallMarginEnd" />
+                    <Text text="{ordersModel>/Summary/TotalItems}" />
                 </HBox>
-                
                 <HBox alignItems="Center">
-                    <Label text="Valore Totale:" design="Bold" class="sapUiSmallMarginEnd" />
-                    <ObjectNumber id="numValoreTotale" number="0.00" unit="€" state="Success" />
+                    <Label text="{i18n>lblTotalValue}" design="Bold" class="sapUiSmallMarginEnd" />
+                    <ObjectNumber number="{ordersModel>/Summary/TotalValue}" unit="€" state="Success" />
                 </HBox>
-
             </VBox>
-
         </content>
 
         <dependents>
-            <Dialog id="addOrderDialog" title="Crea Nuovo Ordine" contentWidth="400px">
-                
+            <Dialog id="addOrderDialog" title="{i18n>dialogCreateOrderTitle}" contentWidth="400px">
                 <content>
                     <VBox class="sapUiSmallMargin">
-                        <Label text="Nome Cliente" />
-                        <Input id="inputCustomer" placeholder="Es. Mario Rossi" />
+                        <Label text="{i18n>lblCustomerName}" />
+                        <Input value="{/newOrder/CustomerName}" placeholder="{i18n>placeholderCustomer}" />
                         
-                        <Label text="Prodotto" class="sapUiTinyMarginTop"/>
-                        <Input id="inputProduct" placeholder="Es. Laptop" />
+                        <Label text="{i18n>lblProductName}" class="sapUiTinyMarginTop"/>
+                        <Input value="{/newOrder/Product}" placeholder="{i18n>placeholderProduct}" />
                         
-                        <Label text="Categoria" class="sapUiTinyMarginTop"/>
-                        <Input id="inputCategory" placeholder="Es. Hardware, Periferiche, Accessori..." />
+                        <Label text="{i18n>lblCategory}" class="sapUiTinyMarginTop"/>
+                        <Input value="{/newOrder/Category}" placeholder="{i18n>placeholderCategory}" />
                         
-                        <Label text="Quantità" class="sapUiTinyMarginTop"/>
-                        <Input id="inputQuantity" type="Number" placeholder="Es. 1" />
+                        <Label text="{i18n>lblQuantity}" class="sapUiTinyMarginTop"/>
+                        <Input value="{/newOrder/Quantity}" type="Number" />
                         
-                        <Label text="Prezzo Unitario (€)" class="sapUiTinyMarginTop"/>
-                        <Input id="inputPrice" type="Number" placeholder="Es. 150.00" />
+                        <Label text="{i18n>lblUnitPrice}" class="sapUiTinyMarginTop"/>
+                        <Input value="{/newOrder/UnitPrice}" type="Number" />
                     </VBox>
                 </content>
-
                 <buttons>
-                    <Button text="Salva" type="Emphasized" press=".onSaveOrder" />
-                    <Button text="Annulla" type="Transparent" press=".onCancelOrder" />
+                    <Button text="{i18n>btnSave}" type="Emphasized" press=".onSaveOrder" />
+                    <Button text="{i18n>btnCancel}" type="Transparent" press=".onCancelOrder" />
                 </buttons>
-
             </Dialog>
         </dependents>
-
     </Page>
-
 </mvc:View>

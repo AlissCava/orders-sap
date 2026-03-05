@@ -6,22 +6,21 @@
     displayBlock="true">
     
     <tnt:ToolPage id="toolPage">
-        
         <tnt:header>
             <tnt:ToolHeader>
                 <Button id="sideNavigationToggleButton"
                         icon="sap-icon://menu2"
                         type="Transparent"
                         press=".onCollapseExpandPress" />
-                <Title text="Gestione Ordini Aziendale" />
+                <Title text="{i18n>appTitle}" />
             </tnt:ToolHeader>
         </tnt:header>
 
         <tnt:sideContent>
             <tnt:SideNavigation id="sideNavigation" itemSelect=".onItemSelect">
                 <tnt:NavigationList>
-                    <tnt:NavigationListItem text="Ordini" icon="sap-icon://list" key="Home" />
-                    <tnt:NavigationListItem text="Dashboard" icon="sap-icon://bar-chart" key="Dashboard" />
+                    <tnt:NavigationListItem text="{i18n>navOrders}" icon="sap-icon://list" key="Home" />
+                    <tnt:NavigationListItem text="{i18n>navDashboard}" icon="sap-icon://bar-chart" key="Dashboard" />
                 </tnt:NavigationList>
             </tnt:SideNavigation>
         </tnt:sideContent>
@@ -29,6 +28,5 @@
         <tnt:mainContents>
             <App id="app" />
         </tnt:mainContents>
-
     </tnt:ToolPage>
 </mvc:View>
