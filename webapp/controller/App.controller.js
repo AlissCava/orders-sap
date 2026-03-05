@@ -1,33 +1,30 @@
 sap.ui.define([
-  "sap/ui/core/mvc/Controller"
-], function (Controller) {
-  "use strict";
+    "orders/controller/BaseController" // Estendiamo le fondamenta comuni
+], function (BaseController) {
+    "use strict";
 
-  return Controller.extend("orders.controller.App", {
+    return BaseController.extend("orders.controller.App", {
+        // FUNZIONE onInit: scatta all'avvio dell'applicazione.
+        onInit: function () {
+            // Applichiamo la classe di densità dei contenuti (compatta o accogliente) 
+            // per rendere l'interfaccia coerente con il resto dell'ecosistema SAP Fiori.
+            this.getView().addStyleClass(this.getOwnerComponent().getContentDensityClass());
+        },
 
-    // 1. Funzione per aprire e chiudere il menu a comparsa
-    onCollapseExpandPress: function () {
-      var oToolPage = this.byId("toolPage");
-      var bSideExpanded = oToolPage.getSideExpanded();
+        // FUNZIONE onCollapseExpandPress: gestisce l'apertura/chiusura del menu laterale.
+        onCollapseExpandPress: function () {
+            var oToolPage = this.byId("toolPage"); // Cerchiamo l'oggetto ToolPage tramite ID
+            var bSideExpanded = oToolPage.getSideExpanded(); // Verifichiamo se il menu è aperto o chiuso
 
-      // Inverte lo stato: se è aperto lo chiude, se è chiuso lo apre
-      oToolPage.setSideExpanded(!bSideExpanded);
-    },
+            // Se è aperto lo chiude, se è chiuso lo apre.
+            oToolPage.setSideExpanded(!bSideExpanded);
+        },
 
-    // 2. Funzione per navigare quando si clicca su una voce del menu
-    onItemSelect: function (oEvent) {
-      var oItem = oEvent.getParameter("item");
-      var sKey = oItem.getKey(); // Legge se abbiamo cliccato "Home" o "Dashboard"
-
-      // "Evoca" il navigatore satellitare (il Router)
-      var oRouter = this.getOwnerComponent().getRouter();
-
-      // Usa il Router per navigare verso la destinazione corretta
-      if (sKey === "Home") {
-        oRouter.navTo("RouteHome");
-      } else if (sKey === "Dashboard") {
-        oRouter.navTo("RouteDashboard");
-      }
-    }
-  });
+        // FUNZIONE onItemSelect: gestisce la navigazione quando clicchi sulle icone del menu.
+        onItemSelect: function (oEvent) {
+            var oItem = oEvent.getParameter("item"); // Capisce quale voce è stata cliccata
+            // Usa il getRouter() definito nel BaseController per cambiare pagina.
+            this.getRouter().navTo(oItem.getKey());
+        }
+    });
 });

@@ -1,110 +1,62 @@
 sap.ui.define([
-  "sap/ui/core/mvc/Controller",
-  "sap/ui/model/json/JSONModel" // Strumento per creare il nostro mini-database locale per i grafici
-], function (Controller, JSONModel) {
-  "use strict";
+    "orders/controller/BaseController", // Usiamo il BaseController per modelli e router
+    "sap/ui/model/json/JSONModel"
+], function (BaseController, JSONModel) {
+    "use strict";
 
-  return Controller.extend("orders.controller.Dashboard", {
+    return BaseController.extend("orders.controller.Dashboard", {
 
-    // ------------------------------------------------------------------------
-    // 1. INIZIALIZZAZIONE DELLA PAGINA
-    // ------------------------------------------------------------------------
-    // Questa funzione scatta una sola volta quando l'applicazione viene caricata dal browser
-    onInit: function () {
-      // "Evochiamo" il navigatore satellitare dell'app (il Router)
-      var oRouter = this.getOwnerComponent().getRouter();
+        onInit: function () {
+            // Otteniamo il router dal BaseController e ascoltiamo l'ingresso sulla Dashboard.
+            // È importante ricalcolare i dati ogni volta che l'utente entra nella pagina.
+            this.getRouter().getRoute("Dashboard").attachPatternMatched(this._onRouteMatched, this);
+        },
 
-      // Diciamo al Router: "Mettiti in ascolto. Quando l'utente clicca sul menu e 
-      // atterra fisicamente sulla rotta 'RouteDashboard', fai partire la funzione _onRouteMatched".
-      // Questo è fondamentale perché i grafici devono aggiornarsi ogni volta che entri,
-      // nel caso l'utente abbia appena aggiunto o cancellato un ordine nella Home!
-      oRouter.getRoute("RouteDashboard").attachPatternMatched(this._onRouteMatched, this);
-    },
+        // MOTORE DI CALCOLO DELLE STATISTICHE
+        _onRouteMatched: function () {
+            // Recuperiamo il modello globale degli ordini tramite il BaseController.
+            var oOrdersModel = this.getModel("ordersModel");
+            var aOrders = oOrdersModel.getProperty("/Orders");
 
-    // ------------------------------------------------------------------------
-    // 2. IL MOTORE DI CALCOLO (Svegliato ogni volta che apriamo la Dashboard)
-    // ------------------------------------------------------------------------
-    _onRouteMatched: function () {
+            // Controllo di sicurezza: se non ci sono ordini, non procedere.
+            if (!aOrders) {
+                return;
+            }
 
-      // --- FASE A: Recupero Dati ---
-      // Andiamo a bussare alla "cassaforte" dell'app per farci dare il modello globale degli ordini
-      var oOrdersModel = this.getOwnerComponent().getModel("ordersModel");
+            // Inizializziamo i contatori (pallottolieri) per stato e categoria.
+            var oStatusCounts = {};
+            var oCategoryCounts = {};
 
-      // Estraiamo l'array puro con tutte le righe degli ordini
-      var aOrders = oOrdersModel.getProperty("/Orders");
+            // Cicliamo l'intero array degli ordini.
+            aOrders.forEach(function (oOrder) {
+                var sStatus = oOrder.Status;
+                var sCategory = oOrder.Category || "Other"; // Usiamo "Other" (inglese) come fallback
 
-      // Sistema di sicurezza: se il file JSON non si è caricato o è vuoto, blocca tutto
-      // per evitare che l'app vada in crash con uno schermo bianco.
-      if (!aOrders) {
-        return;
-      }
+                // Contiamo gli ordini per ogni Stato (es: "Created", "In Progress").
+                oStatusCounts[sStatus] = (oStatusCounts[sStatus] || 0) + 1;
 
-      // --- FASE B: I Due Pallottolieri ---
-      // Creiamo due oggetti vuoti. Funzioneranno come dei veri e propri contatori.
-      // Uno conterà quanti ordini ci sono per ogni Stato, l'altro per ogni Categoria.
-      var oConteggiStato = {};
-      var oConteggiCategoria = {};
+                // Contiamo gli ordini per ogni Categoria (es: "Hardware", "Software").
+                oCategoryCounts[sCategory] = (oCategoryCounts[sCategory] || 0) + 1;
+            });
 
-      // Iniziamo il ciclo: passiamo in rassegna ogni singolo ordine presente nel database
-      for (var i = 0; i < aOrders.length; i++) {
+            // TRADUZIONE DATI PER I GRAFICI:
+            // I MicroCharts di SAPUI5 richiedono degli array. Trasformiamo i nostri oggetti contatori.
+            var aStatusStats = Object.keys(oStatusCounts).map(function(sKey) {
+                return { label: sKey, value: oStatusCounts[sKey] };
+            });
 
-        // Leggiamo i valori della riga corrente
-        var sStato = aOrders[i].Status;
+            var aCategoryStats = Object.keys(oCategoryCounts).map(function(sKey) {
+                return { label: sKey, value: oCategoryCounts[sKey] };
+            });
 
-        // Se un ordine vecchio (creato prima di aggiungere la colonna) non ha la Categoria, 
-        // usiamo "Altro" come paracadute di sicurezza.
-        var sCategoria = aOrders[i].Category || "Altro";
+            // Creiamo un modello JSON locale specifico per la Dashboard.
+            var oStatsModel = new JSONModel({
+                Statuses: aStatusStats,
+                Categories: aCategoryStats
+            });
 
-        // --- AGGIORNAMENTO PALLOTTOLIERE 1 (Gli Stati per la Ciambella) ---
-        // Se questo stato (es. "Completato") non esiste ancora nel contatore, lo creiamo partendo da zero
-        if (!oConteggiStato[sStato]) {
-          oConteggiStato[sStato] = 0;
+            // Assegniamo il modello alla vista tramite la funzione del BaseController.
+            this.setModel(oStatsModel, "statsModel");
         }
-        // Aggiungiamo 1 al contatore di questo specifico stato
-        oConteggiStato[sStato]++;
-
-
-        // --- AGGIORNAMENTO PALLOTTOLIERE 2 (Le Categorie per le Barre) ---
-        // Facciamo la stessa identica cosa, ma per la categoria (es. "Hardware")
-        if (!oConteggiCategoria[sCategoria]) {
-          oConteggiCategoria[sCategoria] = 0;
-        }
-        oConteggiCategoria[sCategoria]++;
-      }
-
-      // --- FASE C: Preparazione per i Grafici ---
-      // I grafici di SAPUI5 (MicroChart) sono schizzinosi: non accettano gli oggetti grezzi che abbiamo
-      // appena usato come pallottolieri, ma vogliono degli Array ben formattati. Dobbiamo tradurli.
-
-      // 1. Prepariamo l'array per la Ciambella
-      var aStatisticheStato = [];
-      for (var chiaveStato in oConteggiStato) {
-        aStatisticheStato.push({
-          label: chiaveStato,               // Es: "Completato"
-          value: oConteggiStato[chiaveStato] // Es: 3
-        });
-      }
-
-      // 2. Prepariamo l'array per le Barre
-      var aStatisticheCategoria = [];
-      for (var chiaveCategoria in oConteggiCategoria) {
-        aStatisticheCategoria.push({
-          label: chiaveCategoria,                  // Es: "Hardware"
-          value: oConteggiCategoria[chiaveCategoria] // Es: 5
-        });
-      }
-
-      // --- FASE D: Iniezione nella View ---
-      // Mettiamo i due array tradotti dentro un nuovo "mini-database" creato appositamente per questa pagina.
-      // Lo chiamiamo oStatsModel e gli diamo due "cartelle": Statuses e Categories.
-      var oStatsModel = new JSONModel({
-        Statuses: aStatisticheStato,
-        Categories: aStatisticheCategoria
-      });
-
-      // Infine, colleghiamo fisicamente questo modello alla pagina Dashboard dandogli il nome "statsModel".
-      // Così i grafici nell'XML potranno pescare i dati scrivendo "{statsModel>/Statuses}" ecc.
-      this.getView().setModel(oStatsModel, "statsModel");
-    }
-  });
+    });
 });
