@@ -1,0 +1,71 @@
+<mvc:View
+    controllerName="orders.controller.Articles"
+    xmlns:mvc="sap.ui.core.mvc"
+    displayBlock="true"
+    xmlns="sap.m">
+
+    <Page title="{i18n>articlesPageTitle}" showNavButton="true" navButtonPress=".onNavBack">
+        <content>
+            <Table id="articlesTable" 
+                   items="{/ZES_articoliSet}" 
+                   growing="true" 
+                   growingThreshold="10"  
+                   mode="Delete"
+                   delete=".onDeleteArticle">
+                
+                <headerToolbar>
+                    <OverflowToolbar>
+                        <Title text="{i18n>navArticles}" />
+                        <ToolbarSpacer />
+                        <Button icon="sap-icon://add" 
+                                text="{i18n>btnNewOrder}" 
+                                type="Emphasized" 
+                                press=".onOpenAddArticleDialog" />
+                    </OverflowToolbar>
+                </headerToolbar>
+
+                <columns>
+                    <Column><Text text="{i18n>colArticleCode}" /></Column>
+                    <Column><Text text="{i18n>colArticleName}" /></Column>
+                    <Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>colAvailableQty}" /></Column>
+                    <Column hAlign="End"><Text text="{i18n>colArticlePrice}" /></Column>
+                </columns>
+
+                <items>
+                    <ColumnListItem type="Navigation" press=".onEditArticle">
+                        <cells>
+                            <Text text="{CodArticolo}" />
+                            <Text text="{NomeArticolo}" />
+                            <Text text="{QuantitaDisp}" />
+                            <ObjectNumber number="{Importo}" unit="€" />
+                        </cells>
+                    </ColumnListItem>
+                </items>
+            </Table>
+        </content>
+
+        <dependents>
+            <Dialog id="addArticleDialog" title="{i18n>dialogCreateArticleTitle}">
+                <content>
+                    <VBox class="sapUiSmallMargin">
+                        <Label text="{i18n>lblArticleCode}" required="true" />
+                        <Input value="{articleModel>/newArticle/CodArticolo}" placeholder="{i18n>placeholderArticleCode}" />
+
+                        <Label text="{i18n>lblArticleName}" required="true" class="sapUiTinyMarginTop" />
+                        <Input value="{articleModel>/newArticle/NomeArticolo}" placeholder="{i18n>placeholderArticleName}" />
+
+                        <Label text="{i18n>lblAvailableQty}" class="sapUiTinyMarginTop" />
+                        <Input value="{articleModel>/newArticle/QuantitaDisp}" type="Number" />
+
+                        <Label text="{i18n>lblPrice}" class="sapUiTinyMarginTop" />
+                        <Input value="{articleModel>/newArticle/Importo}" type="Number" placeholder="{i18n>placeholderPrice}" />
+                    </VBox>
+                </content>
+                <buttons>
+                    <Button text="{i18n>btnSave}" type="Emphasized" press=".onSaveArticle" />
+                    <Button text="{i18n>btnCancel}" press=".onCloseArticleDialog" />
+                </buttons>
+            </Dialog>
+        </dependents>
+    </Page>
+</mvc:View>
