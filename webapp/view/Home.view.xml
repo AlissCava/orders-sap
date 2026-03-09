@@ -6,39 +6,48 @@
 
     <Page id="page" title="{i18n>homePageTitle}">
         <content>
-            <Table id="ordersTable" items="{ordersModel>/Orders}" mode="Delete" delete=".onDeleteOrder" updateFinished=".onTableUpdateFinished" growing="true" growingThreshold="3"> 
-                <headerToolbar>
-                    <OverflowToolbar>
-                        <SearchField width="300px" placeholder="{i18n>searchPlaceholder}" liveChange=".onSearch" />
-                        <ToolbarSpacer />
-                        <Button icon="sap-icon://excel-attachment" text="{i18n>btnExportExcel}" press=".onExport" />
-                        <Button icon="sap-icon://add" text="{i18n>btnNewOrder}" type="Emphasized" press=".onOpenAddDialog" />
-                    </OverflowToolbar>
-                </headerToolbar>
-                
-                <columns>
-                    <Column><Text text="{i18n>colOrderID}" /></Column>
-                    <Column><Text text="{i18n>colCustomer}" /></Column>
-                    <Column><Text text="{i18n>colProduct}" /></Column>
-                    <Column><Text text="{i18n>colQuantity}" /></Column>
-                    <Column><Text text="{i18n>colPrice}" /></Column>
-                    <Column><Text text="{i18n>colStatus}" /></Column>
-                </columns>
+            <Table  id="ordersTable" 
+                    items="{/ZES_lista_ordiniSet}" 
+                    mode="Delete" 
+                    delete=".onDeleteOrder" 
+                    updateFinished=".onTableUpdateFinished" 
+                    growing="true" 
+                    growingThreshold="10"> 
+                    
+                    <headerToolbar>
+                        <OverflowToolbar>
+                            <SearchField width="300px" placeholder="{i18n>searchPlaceholder}" liveChange=".onSearch" />
+                            <ToolbarSpacer />
+                            <Button icon="sap-icon://excel-attachment" text="{i18n>btnExportExcel}" press=".onExport" />
+                            <Button icon="sap-icon://add" text="{i18n>btnNewOrder}" type="Emphasized" press=".onOpenAddDialog" />
+                        </OverflowToolbar>
+                    </headerToolbar>
+                    
+                    <columns>
+                        <Column><Text text="{i18n>colOrderID}" /></Column>
+                        <Column><Text text="{i18n>colCustomer}" /></Column>
+                        <Column><Text text="Data Ordine" /></Column> 
+                        <Column hAlign="End"><Text text="Totale (€)" /></Column>
+                        <Column><Text text="{i18n>colStatus}" /></Column>
+                    </columns>
 
-                <items>
-                    <ColumnListItem>
-                        <cells>
-                            <Text text="{ordersModel>OrderID}" />
-                            <Text text="{ordersModel>CustomerName}" />
-                            <Text text="{ordersModel>Product}" />
-                            <Text text="{ordersModel>Quantity}" />
-                            <Text text="{ordersModel>UnitPrice} €" />
-                            <Text text="{ordersModel>Status}" />
-                        </cells>
-                    </ColumnListItem>
-                </items>
+                    <items>
+                        <ColumnListItem type="Navigation" press=".onNavToDetail">
+                            <cells>
+                                <Text text="{NumOrdine}" />
+                                <Text text="{Cliente}" />
+                                <Text text="{ 
+                                    path: 'DataOrdine', 
+                                    type: 'sap.ui.model.type.Date', 
+                                    formatOptions: { pattern: 'dd/MM/yyyy' } 
+                                }" />
+                                <ObjectNumber number="{ImportoTot}" unit="€" />
+                                <Text text="{StatoTxt}" />
+                            </cells>
+                        </ColumnListItem>
+                    </items>
             </Table>
-
+            
             <VBox class="sapUiSmallMargin" alignItems="End">
                 <HBox alignItems="Center" class="sapUiTinyMarginBottom">
                     <Label text="{i18n>lblTotalOrders}" design="Bold" class="sapUiSmallMarginEnd" />

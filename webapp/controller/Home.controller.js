@@ -32,6 +32,25 @@ sap.ui.define([
             this._calculateTotal();
         },
 
+      
+        // --- NAVIGAZIONE AL DETTAGLIO ORDINE
+        onNavToDetail: function (oEvent) {
+            // 1. Capiamo quale riga esatta è stata cliccata
+            var oItem = oEvent.getSource();
+            
+            // 2. Prendiamo il "Binding Context" (il collegamento tra quella riga e i dati OData)
+            var oBindingContext = oItem.getBindingContext(); 
+            
+            // 3. Estraiamo il numero dell'ordine cliccato (la nostra chiave)
+            var sNumOrdine = oBindingContext.getProperty("NumOrdine");
+
+            // 4. Diciamo al Router di cambiare pagina verso "RouteOrderDetail" 
+            // e gli passiamo il NumOrdine nell'URL.
+            this.getRouter().navTo("RouteOrderDetail", {
+                orderId: sNumOrdine
+            });
+        },
+
         _calculateTotal: function () {
             // Recuperiamo il modello degli ordini tramite la funzione del BaseController
             var oModel = this.getModel("ordersModel");
