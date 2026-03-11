@@ -4,44 +4,44 @@
     xmlns="sap.m"
     displayBlock="true">
 
-    <Page title="{i18n>orderDetailTitle}" showNavButton="true" navButtonPress=".onNavBack">
+    <Page title="Dettaglio Ordine" showNavButton="true" navButtonPress=".onNavBack">
         <content>
             <ObjectHeader
-                title="{Cliente}"
+                title="{detailModel>/Cliente}"
                 number="{
-                    path: 'ImportoTot',
+                    path: 'detailModel>/ImportoTot',
                     type: 'sap.ui.model.type.Float',
                     formatOptions: { minFractionDigits: 2, maxFractionDigits: 2 }
                 }"
                 numberUnit="€"
-                intro="{NumOrdine}">
+                intro="Ordine n. {detailModel>/NumOrdine}">
                 <attributes>
-                    <ObjectAttribute title="{i18n>lblStatus}" text="{StatoTxt}" />
+                    <ObjectAttribute title="Stato" text="{detailModel>/StatoTxt}" />
                 </attributes>
             </ObjectHeader>
 
             <Table id="lineItemsTable"
-                   items="{ZET_dettagli_ordiniSet}"
+                   items="{detailModel>/Articoli}" 
                    class="sapUiResponsiveMargin"
                    width="auto">
                 <headerToolbar>
                     <Toolbar>
-                        <Title text="{i18n>lblOrderItems}" level="H2"/>
+                        <Title text="Articoli dell'Ordine" level="H2"/>
                     </Toolbar>
                 </headerToolbar>
                 <columns>
-                    <Column><Text text="{i18n>colArticleCode}"/></Column>
-                    <Column><Text text="{i18n>colArticleName}"/></Column>
-                    <Column hAlign="End"><Text text="{i18n>colQuantity}"/></Column>
-                    <Column hAlign="End"><Text text="{i18n>colPrice}"/></Column>
+                    <Column><Text text="Codice Articolo"/></Column>
+                    <Column><Text text="Nome Articolo"/></Column>
+                    <Column hAlign="End"><Text text="Quantità"/></Column>
+                    <Column hAlign="End"><Text text="Prezzo"/></Column>
                 </columns>
                 <items>
                     <ColumnListItem>
                         <cells>
-                            <Text text="{CodArticolo}" />
-                            <Text text="{NomeArticolo}" />
-                            <Text text="{QuantitaOrdine}" />
-                            <ObjectNumber number="{Importo}" unit="€" />
+                            <Text text="{detailModel>CodArticolo}" />
+                            <Text text="{detailModel>NomeArticolo}" />
+                            <Text text="{detailModel>QuantitaOrdine}" />
+                            <ObjectNumber number="{detailModel>Importo}" unit="€" />
                         </cells>
                     </ColumnListItem>
                 </items>

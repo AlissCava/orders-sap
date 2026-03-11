@@ -19,19 +19,6 @@
                         </mc:segments>
                     </mc:InteractiveDonutChart>
                 </HBox>
-
-                <Title text="{i18n>ordersByCategoryTitle}" level="H2" class="sapUiLargeMarginTop sapUiSmallMarginBottom"/>
-                <HBox width="400px" justifyContent="Center">
-                    <mc:InteractiveBarChart bars="{statsModel>/Categories}" displayedBars="4">
-                        <mc:bars>
-                            <mc:InteractiveBarChartBar 
-                                label="{statsModel>label}" 
-                                value="{statsModel>value}" 
-                                displayedValue="{statsModel>value}"/>
-                        </mc:bars>
-                    </mc:InteractiveBarChart>
-                </HBox>
-
             </VBox>
         </content>
     </Page>

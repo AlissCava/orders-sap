@@ -42,12 +42,8 @@
         "settings": {
           "defaultOperationMode": "Server",
           "defaultBindingMode": "TwoWay",
-          "useBatch": true
+          "useBatch": false
         }
-      },
-      "ordersModel": {
-        "type": "sap.ui.model.json.JSONModel",
-        "uri": "model/orders.json"
       }
     },
     "routing": {

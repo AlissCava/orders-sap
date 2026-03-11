@@ -14,52 +14,48 @@
                     growing="true" 
                     growingThreshold="10"> 
                     
-                    <headerToolbar>
-                        <OverflowToolbar>
-                            <SearchField width="300px" placeholder="{i18n>searchPlaceholder}" liveChange=".onSearch" />
-                            <ToolbarSpacer />
-                            <Button icon="sap-icon://excel-attachment" text="{i18n>btnExportExcel}" press=".onExport" />
-                            <Button icon="sap-icon://add" text="{i18n>btnNewOrder}" type="Emphasized" press=".onOpenAddDialog" />
-                        </OverflowToolbar>
-                    </headerToolbar>
-                    
-                    <columns>
-                        <Column><Text text="{i18n>colOrderID}" /></Column>
-                        <Column><Text text="{i18n>colCustomer}" /></Column>
-                        <Column><Text text="Data Ordine" /></Column> 
-                        <Column hAlign="End"><Text text="Totale (€)" /></Column>
-                        <Column><Text text="{i18n>colStatus}" /></Column>
-                    </columns>
+                <headerToolbar>
+                    <OverflowToolbar>
+                        <SearchField width="300px" placeholder="{i18n>searchPlaceholder}" liveChange=".onSearch" />
+                        <ToolbarSpacer />
+                        <Button icon="sap-icon://excel-attachment" text="{i18n>btnExportExcel}" press=".onExport" />
+                        <Button icon="sap-icon://add" text="{i18n>btnNewOrder}" type="Emphasized" press=".onOpenAddDialog" />
+                    </OverflowToolbar>
+                </headerToolbar>
+                
+                <columns>
+                    <Column><Text text="{i18n>colOrderID}" /></Column>
+                    <Column><Text text="{i18n>colCustomer}" /></Column>
+                    <Column><Text text="Data Ordine" /></Column> 
+                    <Column hAlign="End"><Text text="Totale (€)" /></Column>
+                    <Column><Text text="{i18n>colStatus}" /></Column>
+                </columns>
 
-                    <items>
-                        <ColumnListItem type="Navigation" press=".onNavToDetail">
-                            <cells>
-                                <Text text="{NumOrdine}" />
-                                <Text text="{Cliente}" />
-                                <Text text="{ 
-                                    path: 'DataOrdine', 
-                                    type: 'sap.ui.model.type.Date', 
-                                    formatOptions: { pattern: 'dd/MM/yyyy' } 
-                                }" />
-                                <ObjectNumber number="{ImportoTot}" unit="€" />
-                                <Text text="{StatoTxt}" />
-                            </cells>
-                        </ColumnListItem>
-                    </items>
+                <items>
+                    <ColumnListItem type="Navigation" press=".onNavToDetail">
+                        <cells>
+                            <Text text="{NumOrdine}" />
+                            <Text text="{Cliente}" />
+                            <Text text="{ 
+                                path: 'DataOrdine', 
+                                type: 'sap.ui.model.type.Date', 
+                                formatOptions: { pattern: 'dd/MM/yyyy' } 
+                            }" />
+                            <ObjectNumber number="{ImportoTot}" unit="€" />
+                            <Text text="{StatoTxt}" />
+                        </cells>
+                    </ColumnListItem>
+                </items>
             </Table>
             
             <VBox class="sapUiSmallMargin" alignItems="End">
                 <HBox alignItems="Center" class="sapUiTinyMarginBottom">
                     <Label text="{i18n>lblTotalOrders}" design="Bold" class="sapUiSmallMarginEnd" />
-                    <Text text="{ordersModel>/Summary/TotalCount}" />
-                </HBox>
-                <HBox alignItems="Center" class="sapUiTinyMarginBottom">
-                    <Label text="{i18n>lblTotalItems}" design="Bold" class="sapUiSmallMarginEnd" />
-                    <Text text="{ordersModel>/Summary/TotalItems}" />
+                    <Text text="{summaryModel>/TotalCount}" />
                 </HBox>
                 <HBox alignItems="Center">
                     <Label text="{i18n>lblTotalValue}" design="Bold" class="sapUiSmallMarginEnd" />
-                    <ObjectNumber number="{ordersModel>/Summary/TotalValue}" unit="€" state="Success" />
+                    <ObjectNumber number="{summaryModel>/TotalValue}" unit="€" state="Success" />
                 </HBox>
             </VBox>
         </content>
@@ -68,20 +64,20 @@
             <Dialog id="addOrderDialog" title="{i18n>dialogCreateOrderTitle}" contentWidth="400px">
                 <content>
                     <VBox class="sapUiSmallMargin">
-                        <Label text="{i18n>lblCustomerName}" />
-                        <Input value="{/newOrder/CustomerName}" placeholder="{i18n>placeholderCustomer}" />
+                        <Label text="{i18n>lblCustomerName}" required="true" />
+                        <Input value="{formModel>/newOrder/CustomerName}" placeholder="{i18n>placeholderCustomer}" />
                         
+                        <Label text="Codice Articolo" class="sapUiTinyMarginTop" required="true" />
+                        <Input value="{formModel>/newOrder/ArticleCode}" placeholder="es. 101" />
+
                         <Label text="{i18n>lblProductName}" class="sapUiTinyMarginTop"/>
-                        <Input value="{/newOrder/Product}" placeholder="{i18n>placeholderProduct}" />
-                        
-                        <Label text="{i18n>lblCategory}" class="sapUiTinyMarginTop"/>
-                        <Input value="{/newOrder/Category}" placeholder="{i18n>placeholderCategory}" />
+                        <Input value="{formModel>/newOrder/ProductName}" placeholder="{i18n>placeholderProduct}" />
                         
                         <Label text="{i18n>lblQuantity}" class="sapUiTinyMarginTop"/>
-                        <Input value="{/newOrder/Quantity}" type="Number" />
+                        <Input value="{formModel>/newOrder/Quantity}" type="Number" />
                         
                         <Label text="{i18n>lblUnitPrice}" class="sapUiTinyMarginTop"/>
-                        <Input value="{/newOrder/UnitPrice}" type="Number" />
+                        <Input value="{formModel>/newOrder/UnitPrice}" type="Number" />
                     </VBox>
                 </content>
                 <buttons>
