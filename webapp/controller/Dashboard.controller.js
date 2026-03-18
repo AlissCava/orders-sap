@@ -12,8 +12,8 @@ sap.ui.define([
 
         _onRouteMatched: function () {
             // Prendiamo il modello OData REALE (senza nome)
-            var oModel = this.getModel(); 
-            var that = this;
+            const oModel = this.getModel(); 
+            const that = this;
 
             sap.ui.core.BusyIndicator.show(0); // Accendiamo il caricamento
 
@@ -23,31 +23,31 @@ sap.ui.define([
                     sap.ui.core.BusyIndicator.hide();
                     
                     // oData.results contiene l'array dei veri ordini dal server
-                    var aOrders = oData.results; 
+                    const aOrders = oData.results; 
 
-                    var oStatusCounts = {};
-                    var oCustomerCounts = {}; // Sostituiamo Categoria con Cliente
+                    const oStatusCounts = {};
+                    const oCustomerCounts = {}; // Sostituiamo Categoria con Cliente
 
                     // Contiamo i dati
                     aOrders.forEach(function (oOrder) {
-                        var sStatus = oOrder.StatoTxt || "Nuovo";
-                        var sCustomer = oOrder.Cliente || "Sconosciuto";
+                        const sStatus = oOrder.StatoTxt || "Nuovo";
+                        const sCustomer = oOrder.Cliente || "Sconosciuto";
 
                         oStatusCounts[sStatus] = (oStatusCounts[sStatus] || 0) + 1;
                         oCustomerCounts[sCustomer] = (oCustomerCounts[sCustomer] || 0) + 1;
                     });
 
                     // Trasformiamo i conteggi in array per i grafici
-                    var aStatusStats = Object.keys(oStatusCounts).map(function(sKey) {
+                    const aStatusStats = Object.keys(oStatusCounts).map(function(sKey) {
                         return { label: sKey, value: oStatusCounts[sKey] };
                     });
 
-                    var aCustomerStats = Object.keys(oCustomerCounts).map(function(sKey) {
+                    const aCustomerStats = Object.keys(oCustomerCounts).map(function(sKey) {
                         return { label: sKey, value: oCustomerCounts[sKey] };
                     });
 
                     // Creiamo il modello locale per la vista
-                    var oStatsModel = new JSONModel({
+                    const oStatsModel = new JSONModel({
                         Statuses: aStatusStats,
                         Customers: aCustomerStats // Nuova property per i Clienti
                     });

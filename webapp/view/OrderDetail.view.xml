@@ -4,7 +4,7 @@
     xmlns="sap.m"
     displayBlock="true">
 
-    <Page title="Dettaglio Ordine" showNavButton="true" navButtonPress=".onNavBack">
+    <Page title="{i18n>orderDetailTitle}" showNavButton="true" navButtonPress=".onNavBack">
         <content>
             <ObjectHeader
                 title="{detailModel>/Cliente}"
@@ -14,9 +14,9 @@
                     formatOptions: { minFractionDigits: 2, maxFractionDigits: 2 }
                 }"
                 numberUnit="€"
-                intro="Ordine n. {detailModel>/NumOrdine}">
+                intro="{i18n>lblOrderNo} {detailModel>/NumOrdine}">
                 <attributes>
-                    <ObjectAttribute title="Stato" text="{detailModel>/StatoTxt}" />
+                    <ObjectAttribute title="{i18n>lblStatus}" text="{detailModel>/StatoTxt}" />
                 </attributes>
             </ObjectHeader>
 
@@ -26,14 +26,14 @@
                    width="auto">
                 <headerToolbar>
                     <Toolbar>
-                        <Title text="Articoli dell'Ordine" level="H2"/>
+                        <Title text="{i18n>orderItemsTitle}" level="H2"/>
                     </Toolbar>
                 </headerToolbar>
                 <columns>
-                    <Column><Text text="Codice Articolo"/></Column>
-                    <Column><Text text="Nome Articolo"/></Column>
-                    <Column hAlign="End"><Text text="Quantità"/></Column>
-                    <Column hAlign="End"><Text text="Prezzo"/></Column>
+                    <Column><Text text="{i18n>colArticleCode}"/></Column>
+                    <Column><Text text="{i18n>colArticleName}"/></Column>
+                    <Column hAlign="End"><Text text="{i18n>colQuantity}"/></Column>
+                    <Column hAlign="End"><Text text="{i18n>colPrice}"/></Column>
                 </columns>
                 <items>
                     <ColumnListItem>

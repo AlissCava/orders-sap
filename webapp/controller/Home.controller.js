@@ -16,7 +16,7 @@ sap.ui.define([
         // ------------------------------------------------------------------------
         onInit: function () {
             // Modello 1: "formModel" - Serve per pulire e leggere i campi del popup "Nuovo Ordine"
-            var oFormModel = new JSONModel({
+            const oFormModel = new JSONModel({
                 newOrder: {
                     CustomerName: "",
                     ArticleCode: "", 
@@ -29,7 +29,7 @@ sap.ui.define([
 
             // Modello 2: "summaryModel" - Serve per tenere traccia dei totali a fondo pagina.
             // Dato che abbiamo rimosso ordersModel, ci serve un nuovo posto dove salvare i numeri calcolati.
-            var oSummaryModel = new JSONModel({
+            const oSummaryModel = new JSONModel({
                 TotalCount: 0,
                 TotalValue: 0.00
             });
@@ -41,18 +41,18 @@ sap.ui.define([
         // ------------------------------------------------------------------------
         onNavToDetail: function (oEvent) {
             // Capiamo quale riga esatta della tabella è stata cliccata
-            var oItem = oEvent.getSource();
+            const oItem = oEvent.getSource();
             
             // Prendiamo il collegamento (Context) tra quella riga e i dati OData del server
-            var oBindingContext = oItem.getBindingContext(); 
+            const oBindingContext = oItem.getBindingContext(); 
             
-            // Estraiamo la chiave univoca: il Numero dell'Ordine
-            var sNumOrdine = oBindingContext.getProperty("NumOrdine");
+            // Estraiamo la chiave univoca: il Numero dell'Ordine (TRADOTTO DA sNumOrdine)
+            const sOrderNum = oBindingContext.getProperty("NumOrdine");
 
             // Diciamo al Router di cambiare pagina verso "RouteOrderDetail" 
             // passando l'ID dell'ordine nell'URL
             this.getRouter().navTo("RouteOrderDetail", {
-                orderId: sNumOrdine
+                orderId: sOrderNum
             });
         },
 
@@ -67,29 +67,30 @@ sap.ui.define([
         _calculateTotal: function () {
             // Con OData, non abbiamo tutto il database in memoria, ma solo le righe scaricate (paginazione).
             // Quindi chiediamo alla tabella quali righe ha attualmente a schermo.
-            var oTable = this.byId("ordersTable");
-            var aContexts = oTable.getBinding("items").getContexts(); 
+            const oTable = this.byId("ordersTable");
+            const aContexts = oTable.getBinding("items").getContexts(); 
 
-            var iTotalCount = 0;   // Contatore del numero di ordini
-            var fTotalValue = 0;   // Somma del fatturato
+            // Usiamo 'let' perché questi valori verranno riassegnati nel ciclo!
+            let iTotalCount = 0;   // Contatore del numero di ordini
+            let fTotalValue = 0;   // Somma del fatturato
 
             // Cicliamo le righe caricate dalla tabella
             aContexts.forEach(function (oContext) {
-                // Leggiamo lo stato e l'importo direttamente dal "contesto" OData
-                var sStatus = oContext.getProperty("StatoTxt");
-                var sImporto = oContext.getProperty("ImportoTot");
+                // Leggiamo lo stato e l'importo direttamente dal "contesto" OData (TRADOTTO DA sImporto)
+                const sStatus = oContext.getProperty("StatoTxt");
+                const sAmount = oContext.getProperty("ImportoTot");
 
                 // Escludiamo dal conteggio gli ordini cancellati
                 if (sStatus !== "Cancellato") {
                     iTotalCount++; 
                     // Il server ci manda stringhe, dobbiamo convertirle in numeri decimali (Float)
-                    fTotalValue += parseFloat(sImporto || 0); 
+                    fTotalValue += parseFloat(sAmount || 0); 
                 }
             });
 
             // Salviamo i risultati nel nostro "summaryModel".
             // Aggiorna l'XML della vista (Home.view.xml) in basso per usare {summaryModel>/TotalCount}
-            var oSummaryModel = this.getModel("summaryModel");
+            const oSummaryModel = this.getModel("summaryModel");
             oSummaryModel.setProperty("/TotalCount", iTotalCount);
             oSummaryModel.setProperty("/TotalValue", fTotalValue.toFixed(2));
         },
@@ -98,10 +99,10 @@ sap.ui.define([
         // 4. ESPORTAZIONE EXCEL (ADATTATA A ODATA)
         // ------------------------------------------------------------------------
         onExport: function () {
-            var oBundle = this.getResourceBundle();
+            const oBundle = this.getResourceBundle();
             
             // Definiamo le colonne dell'Excel usando le proprietà dell'entità ZES_lista_ordiniSet
-            var aCols = [
+            const aCols = [
                 { label: oBundle.getText("colOrderID"), property: "NumOrdine" },
                 { label: oBundle.getText("colCustomer"), property: "Cliente" },
                 { label: "Data Ordine", property: "DataOrdine", type: "date", format: "dd/MM/yyyy" },
@@ -110,23 +111,23 @@ sap.ui.define([
             ];
 
             // Peschiamo i dati attualmente visualizzati in tabella
-            var oTable = this.byId("ordersTable");
-            var aContexts = oTable.getBinding("items").getContexts();
+            const oTable = this.byId("ordersTable");
+            const aContexts = oTable.getBinding("items").getContexts();
             
             // Trasformiamo i contesti OData in semplici oggetti JavaScript leggibili da Excel
-            var aData = aContexts.map(function (oContext) {
+            const aData = aContexts.map(function (oContext) {
                 return oContext.getObject();
             });
 
             // Configuriamo l'esportazione
-            var oSettings = {
+            const oSettings = {
                 workbook: { columns: aCols },
                 dataSource: aData, // Usiamo i dati appena estratti
                 fileName: "Orders_Export.xlsx"
             };
 
             // Costruiamo e scarichiamo il file
-            var oSheet = new Spreadsheet(oSettings);
+            const oSheet = new Spreadsheet(oSettings);
             oSheet.build().finally(function () {
                 oSheet.destroy(); // Puliamo la memoria
             });
@@ -136,8 +137,8 @@ sap.ui.define([
         // 5. RICERCA FILTRATA (ADATTATA A ODATA)
         // ------------------------------------------------------------------------
         onSearch: function (oEvent) {
-            var sQuery = oEvent.getParameter("newValue");
-            var aFilters = [];
+            const sQuery = oEvent.getParameter("newValue");
+            const aFilters = [];
 
             if (sQuery && sQuery.length > 0) {
                 // Creiamo un filtro che cerca per NOME CLIENTE (Campo "Cliente" su SAP)
@@ -155,7 +156,7 @@ sap.ui.define([
         // ------------------------------------------------------------------------
         onOpenAddDialog: function () {
             // Svuotiamo il form prima di aprirlo, per evitare che mostri dati vecchi
-            var oFormModel = this.getModel("formModel");
+            const oFormModel = this.getModel("formModel");
             oFormModel.setProperty("/newOrder", {
                 CustomerName: "", ArticleCode: "", ProductName: "", Quantity: 1, UnitPrice: 0
             });
@@ -167,10 +168,10 @@ sap.ui.define([
         },
 
         onSaveOrder: function () {
-            var oFormModel = this.getModel("formModel"); 
-            var oODataModel = this.getModel();           
-            var oBundle = this.getResourceBundle();
-            var oFormData = oFormModel.getProperty("/newOrder");
+            const oFormModel = this.getModel("formModel"); 
+            const oODataModel = this.getModel();           
+            const oBundle = this.getResourceBundle();
+            const oFormData = oFormModel.getProperty("/newOrder");
 
             // Validazione per evitare invii di ordini vuoti
             if (!oFormData.CustomerName || !oFormData.ArticleCode) {
@@ -178,13 +179,13 @@ sap.ui.define([
                 return;
             }
 
-            // Calcoli
-            var iQuantita = parseInt(oFormData.Quantity) || 1;
-            var iPrezzo = parseInt(oFormData.UnitPrice) || 0;
-            var iImportoTotale = iQuantita * iPrezzo;
+            // Calcoli (TRADOTTI IN INGLESE)
+            const iQuantity = parseInt(oFormData.Quantity) || 1;
+            const iPrice = parseInt(oFormData.UnitPrice) || 0;
+            const iTotalAmount = iQuantity * iPrice;
 
             // IL PAYLOAD PERFETTO (Basato sulle specifiche del documento)
-            var oDeepPayload = {
+            const oDeepPayload = {
                 // 1. Campi della testata Deep (LA CHIAVE È "Operation": "C")
                 "Operation": "C", 
                 // "NumOrdine" non lo mandiamo, dice il documento che è progressivo automatico
@@ -193,7 +194,7 @@ sap.ui.define([
                 "ZET_lista_ordini": {
                     "Cliente": oFormData.CustomerName,
                     "DataOrdine": new Date(), // Lasciamo l'oggetto Date, SAPUI5 V2 Model di solito lo gestisce.
-                    "ImportoTot": iImportoTotale,
+                    "ImportoTot": iTotalAmount,
                     "Stato": 1 
                 },
                 
@@ -202,23 +203,23 @@ sap.ui.define([
                     {
                         "CodArticolo": parseInt(oFormData.ArticleCode),
                         "NomeArticolo": oFormData.ProductName,
-                        "QuantitaOrdine": iQuantita,
-                        "Importo": iPrezzo
+                        "QuantitaOrdine": iQuantity,
+                        "Importo": iPrice
                     }
                 ]
             };
 
             sap.ui.core.BusyIndicator.show(0);
-            var that = this;
+            const that = this;
 
             // Inviamo a SAP!
             oODataModel.create("/ZES_DeepOrdiniSet", oDeepPayload, {
                 success: function (oData) {
                     sap.ui.core.BusyIndicator.hide();
                     
-                    // Se il backend ci restituisce l'ID creato, lo mostriamo
-                    var sNuovoId = oData.ZET_lista_ordini ? oData.ZET_lista_ordini.NumOrdine : "sconosciuto";
-                    MessageToast.show("Ordine " + sNuovoId + " creato con successo!");
+                    // Se il backend ci restituisce l'ID creato, lo mostriamo (TRADOTTO DA sNuovoId)
+                    const sNewId = oData.ZET_lista_ordini ? oData.ZET_lista_ordini.NumOrdine : "sconosciuto";
+                    MessageToast.show("Ordine " + sNewId + " creato con successo!");
                     
                     that.onCancelOrder();
                     oODataModel.refresh(true); // Ricarichiamo la tabella
@@ -237,66 +238,42 @@ sap.ui.define([
             // ---------------------------------------------------------
             // 1. IDENTIFICARE L'ORDINE CLICCATO
             // ---------------------------------------------------------
-            // oEvent contiene le informazioni sull'azione appena compiuta (il click sul cestino).
-            // .getParameter("listItem") ci dice esattamente quale riga della tabella è stata cliccata.
-            // .getBindingContext() recupera il "collegamento" (contesto OData) di quella riga.
-            var oContext = oEvent.getParameter("listItem").getBindingContext();
+            const oContext = oEvent.getParameter("listItem").getBindingContext();
 
             // ---------------------------------------------------------
             // 2. ESTRARRE I DATI ORIGINALI
             // ---------------------------------------------------------
-            // .getObject() tira fuori dal contesto tutti i dati reali di quella riga 
-            // (NumOrdine, Cliente, Data, Importo, ecc.).
-            // Ci servono perché il backend vuole ricevere indietro tutta la testata compilata, 
-            // non possiamo passargli solo lo stato.
-            var oDatiRiga = oContext.getObject(); 
+            // (TRADOTTO DA oDatiRiga)
+            const oRowData = oContext.getObject(); 
             
-            // Salviamo i riferimenti al modello dati SAP e al controller (this) 
-            // per usarli più avanti dentro la funzione di risposta (success/error).
-            var oODataModel = this.getModel();
-            var that = this;
+            const oODataModel = this.getModel();
+            const that = this;
 
             // ---------------------------------------------------------
             // 3. CHIEDERE CONFERMA ALL'UTENTE
             // ---------------------------------------------------------
-            // È sempre buona regola usare un MessageBox prima di un'azione distruttiva.
             MessageBox.confirm("Sei sicura di voler chiudere (eliminare) questo ordine?", {
                 title: "Conferma Eliminazione",
                 actions: [MessageBox.Action.YES, MessageBox.Action.NO],
                 
-                // Questa funzione scatta quando l'utente sceglie una delle opzioni
                 onClose: function (sAction) {
-                    
-                    // Se l'utente ha effettivamente cliccato "Sì"...
                     if (sAction === MessageBox.Action.YES) {
-                        
-                        // Blocchiamo l'interfaccia mostrando la rotellina di caricamento
                         sap.ui.core.BusyIndicator.show(0);
                         
                         // ---------------------------------------------------------
                         // 4. COSTRUIRE IL PAYLOAD (IL PACCHETTO DATI) PER IL SOFT DELETE
                         // ---------------------------------------------------------
-                        // Visto che il server va in errore (dump) con la DELETE standard, 
-                        // facciamo un "Soft Delete": aggiorniamo l'ordine cambiandogli stato.
-                        // Il manuale del backend impone l'uso della struttura "Deep" passandogli "Operation: U".
-                        var oUpdatePayload = {
-                            "Operation": "U", // "U" sta per Update (Aggiornamento parziale)
-                            "NumOrdine": parseInt(oDatiRiga.NumOrdine), // ID ordine obbligatorio per l'update
+                        const oUpdatePayload = {
+                            "Operation": "U", 
+                            "NumOrdine": parseInt(oRowData.NumOrdine), 
                             
-                            // Compiliamo la testata rimettendo esattamente i dati originali estratti al punto 2...
                             "ZET_lista_ordini": {
-                                "NumOrdine": parseInt(oDatiRiga.NumOrdine),
-                                "Cliente": oDatiRiga.Cliente,
-                                "DataOrdine": oDatiRiga.DataOrdine, // Rimandiamo la data intatta senza toccarla
-                                "ImportoTot": parseFloat(oDatiRiga.ImportoTot),
-                                
-                                // ...TRANNE LO STATO!
-                                // Sostituiamo lo stato originale con '4', che a backend significa "Chiuso"
+                                "NumOrdine": parseInt(oRowData.NumOrdine),
+                                "Cliente": oRowData.Cliente,
+                                "DataOrdine": oRowData.DataOrdine, 
+                                "ImportoTot": parseFloat(oRowData.ImportoTot),
                                 "Stato": 4 
                             },
-                            
-                            // Il manuale dice che l'Update aggiorna solo lo stato, quindi gli articoli
-                            // non servono. Passiamo l'array vuoto solo per mantenere valida la struttura Deep.
                             "ZET_dettagli_ordiniSet": [] 
                         };
 
@@ -304,24 +281,18 @@ sap.ui.define([
                         // 5. INVIARE LA RICHIESTA AL SERVER SAP
                         // ---------------------------------------------------------
                         oODataModel.create("/ZES_DeepOrdiniSet", oUpdatePayload, {
-                            
-                            // Se il server risponde "OK" (Status 200/201)
                             success: function () {
-                                sap.ui.core.BusyIndicator.hide(); // Sblocchiamo lo schermo
-                                MessageToast.show("Ordine chiuso con successo."); // Feedback all'utente
+                                sap.ui.core.BusyIndicator.hide(); 
+                                MessageToast.show("Ordine chiuso con successo."); 
                                 
                                 // ---------------------------------------------------------
                                 // 6. AGGIORNARE LA TABELLA
                                 // ---------------------------------------------------------
-                                // Costringiamo la tabella a riscaricare i dati dal server.
-                                // Così vedremo la colonna "Stato" della nostra riga cambiare all'istante!
                                 oODataModel.refresh(true); 
                             },
-                            
-                            // Se il server ci rimbalza (Status 4xx o 5xx)
                             error: function (oError) {
-                                sap.ui.core.BusyIndicator.hide(); // Sblocchiamo lo schermo in ogni caso
-                                that._handleBackendError(oError); // Estraiamo e leggiamo l'errore di SAP
+                                sap.ui.core.BusyIndicator.hide(); 
+                                that._handleBackendError(oError); 
                             }
                         });
                     }
@@ -333,10 +304,10 @@ sap.ui.define([
         // 8. FUNZIONE DI SUPPORTO PER GLI ERRORI
         // ------------------------------------------------------------------------
         _handleBackendError: function (oError) {
-            var sMsg = "Si è verificato un errore nel server SAP."; 
+            let sMsg = "Si è verificato un errore nel server SAP."; // Usiamo let per la riassegnazione
             try {
                 // Cerca di estrarre il messaggio di errore specifico mandato dal backend ABAP
-                var oErrorObj = JSON.parse(oError.responseText);
+                const oErrorObj = JSON.parse(oError.responseText);
                 if (oErrorObj.error && oErrorObj.error.message && oErrorObj.error.message.value) {
                     sMsg = oErrorObj.error.message.value;
                 }

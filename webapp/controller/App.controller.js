@@ -6,18 +6,20 @@ sap.ui.define([
     return BaseController.extend("orders.controller.App", {
 
         onInit: function () {
-            // Abbiamo rimosso getContentDensityClass per evitare l'errore bloccante.
+            // ho rimosso getContentDensityClass per evitare l'errore bloccante.
             // L'app funzionerà benissimo anche senza questa classe di densità.
         },
 
         onCollapseExpandPress: function () {
-            var oToolPage = this.byId("toolPage");
-            var bSideExpanded = oToolPage.getSideExpanded();
+            const oToolPage = this.byId("toolPage");
+            const bSideExpanded = oToolPage.getSideExpanded();
+            
             oToolPage.setSideExpanded(!bSideExpanded);
         },
 
         onItemSelect: function (oEvent) {
-            var oItem = oEvent.getParameter("item");
+            const oItem = oEvent.getParameter("item");
+            
             this.getRouter().navTo(oItem.getKey());
         }
     });

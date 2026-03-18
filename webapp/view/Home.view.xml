@@ -26,8 +26,8 @@
                 <columns>
                     <Column><Text text="{i18n>colOrderID}" /></Column>
                     <Column><Text text="{i18n>colCustomer}" /></Column>
-                    <Column><Text text="Data Ordine" /></Column> 
-                    <Column hAlign="End"><Text text="Totale (€)" /></Column>
+                    <Column><Text text="{i18n>colOrderDate}" /></Column> 
+                    <Column hAlign="End"><Text text="{i18n>colTotalAmount}" /></Column>
                     <Column><Text text="{i18n>colStatus}" /></Column>
                 </columns>
 
@@ -67,8 +67,8 @@
                         <Label text="{i18n>lblCustomerName}" required="true" />
                         <Input value="{formModel>/newOrder/CustomerName}" placeholder="{i18n>placeholderCustomer}" />
                         
-                        <Label text="Codice Articolo" class="sapUiTinyMarginTop" required="true" />
-                        <Input value="{formModel>/newOrder/ArticleCode}" placeholder="es. 101" />
+                        <Label text="{i18n>lblArticleCode}" class="sapUiTinyMarginTop" required="true" />
+                        <Input value="{formModel>/newOrder/ArticleCode}" placeholder="{i18n>placeholderArticleCodeEx}" />
 
                         <Label text="{i18n>lblProductName}" class="sapUiTinyMarginTop"/>
                         <Input value="{formModel>/newOrder/ProductName}" placeholder="{i18n>placeholderProduct}" />

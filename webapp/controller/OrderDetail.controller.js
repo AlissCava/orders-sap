@@ -9,24 +9,24 @@ sap.ui.define([
 
         onInit: function () {
             // Creiamo il modello locale
-            var oDetailModel = new JSONModel();
+            const oDetailModel = new JSONModel();
             this.getView().setModel(oDetailModel, "detailModel");
 
             this.getRouter().getRoute("RouteOrderDetail").attachPatternMatched(this._onObjectMatched, this);
         },
 
         _onObjectMatched: function (oEvent) {
-            var sOrderId = oEvent.getParameter("arguments").orderId;
-            var iOrderId = parseInt(sOrderId);
+            const sOrderId = oEvent.getParameter("arguments").orderId;
+            const iOrderId = parseInt(sOrderId);
             
-            var oODataModel = this.getModel();
-            var oDetailModel = this.getView().getModel("detailModel");
+            const oODataModel = this.getModel();
+            const oDetailModel = this.getView().getModel("detailModel");
 
             // Svuotiamo il modello prima di caricare i nuovi dati
             oDetailModel.setData({});
 
             // Il payload speciale per forzare la Read tramite una Create (Operation: R)
-            var oReadPayload = {
+            const oReadPayload = {
                 "Operation": "R",
                 "NumOrdine": iOrderId,
                 "ZET_lista_ordini": {
@@ -46,28 +46,26 @@ sap.ui.define([
                 success: function (oData) {
                     sap.ui.core.BusyIndicator.hide();
                     
-                    // --- IL TRUCCO DEL LOG: STAMPIAMO I DATI RICEVUTI ---
-                    console.log("RISPOSTA DI SAP:", oData);
-
                     // Estraiamo gli articoli (questo è il pezzo che dobbiamo correggere 
                     // in base a quello che vedremo nella console)
-                    var aArticoli = [];
+                    let aArticles = []; // Usiamo let perché il valore cambia qui sotto
                     if (oData.ZET_dettagli_ordiniSet && oData.ZET_dettagli_ordiniSet.results) {
-                        aArticoli = oData.ZET_dettagli_ordiniSet.results;
+                        aArticles = oData.ZET_dettagli_ordiniSet.results;
                     } else if (Array.isArray(oData.ZET_dettagli_ordiniSet)) {
-                        aArticoli = oData.ZET_dettagli_ordiniSet;
+                        aArticles = oData.ZET_dettagli_ordiniSet;
                     }
 
                     // Impacchettiamo i dati puliti per l'XML
-                    var oDatiPuliti = {
+                    // Lasciamo le chiavi in italiano per non rompere il binding con l'XML!
+                    const oCleanData = {
                         Cliente: oData.ZET_lista_ordini ? oData.ZET_lista_ordini.Cliente : "",
                         ImportoTot: oData.ZET_lista_ordini ? oData.ZET_lista_ordini.ImportoTot : 0,
                         NumOrdine: oData.NumOrdine,
                         StatoTxt: oData.ZET_lista_ordini ? oData.ZET_lista_ordini.StatoTxt : "",
-                        Articoli: aArticoli
+                        Articoli: aArticles
                     };
 
-                    oDetailModel.setData(oDatiPuliti);
+                    oDetailModel.setData(oCleanData);
                 },
                 error: function () {
                     sap.ui.core.BusyIndicator.hide();

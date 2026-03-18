@@ -34,8 +34,9 @@ sap.ui.define([
     // FUNZIONE onNavBack: gestisce il tasto "Indietro" del browser o dell'app.
     // Se c'è una cronologia precedente, torna indietro, altrimenti riporta alla Home.
     onNavBack: function () {
-      var oHistory = History.getInstance();
-      var sPreviousHash = oHistory.getPreviousHash();
+      // Modificati da var a const perché i valori estratti non cambiano mai all'interno della funzione
+      const oHistory = History.getInstance();
+      const sPreviousHash = oHistory.getPreviousHash();
 
       if (sPreviousHash !== undefined) {
         window.history.go(-1); // Torna indietro di un passo nella cronologia

@@ -18,7 +18,7 @@
                         <Title text="{i18n>navArticles}" />
                         <ToolbarSpacer />
                         <Button icon="sap-icon://add" 
-                                text="{i18n>btnNewOrder}" 
+                                text="{i18n>btnNewArticle}" 
                                 type="Emphasized" 
                                 press=".onOpenAddArticleDialog" />
                     </OverflowToolbar>
