@@ -1,0 +1,78 @@
+<mvc:View
+    controllerName="orders.controller.OrderForm"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:f="sap.ui.layout.form"
+    xmlns:core="sap.ui.core"
+    displayBlock="true">
+
+    <Page id="paorderFormPage" title="{viewModel>/viewTitle}" showNavButton="true" navButtonPress=".onNavBack">
+        <content>
+            <VBox class="sapUiResponsiveMargin">
+                
+                <f:SimpleForm 
+                    id="orderForm"
+                    editable="true"
+                    layout="ColumnLayout"
+                    title="Dati Principali"
+                    columnsM="2" columnsL="2" columnsXL="2">
+                    <f:content>
+                        <Label text="{i18n>colOrderID}" />
+                        <Input value="{formModel>/NumOrdine}" editable="{viewModel>/isNew}" />
+
+                        <Label text="{i18n>colCustomer}" required="true"/>
+                        <Input value="{formModel>/Cliente}" placeholder="{i18n>placeholderCustomer}" />
+
+                        <Label text="{i18n>colStatus}" />
+                        <Select selectedKey="{formModel>/StatoTxt}">
+                            <core:Item key="Nuovo" text="Nuovo" />
+                            <core:Item key="In Lavorazione" text="In Lavorazione" />
+                            <core:Item key="Completato" text="Completato" />
+                        </Select>
+
+                        <Label text="{i18n>colTotalAmount}" />
+                        <Input value="{formModel>/ImportoTot}" type="Number" description="€" editable="false" />
+                    </f:content>
+                </f:SimpleForm>
+
+            </VBox>
+
+            <Table id="orderItemsTable"
+                   items="{formModel>/Articoli}" 
+                   class="sapUiResponsiveMargin"
+                   width="auto">
+                <headerToolbar>
+                    <Toolbar>
+                        <Title text="{i18n>orderItemsTitle}" level="H2"/>
+                        <ToolbarSpacer />
+                        <Button icon="sap-icon://add" text="{i18n>btnNewArticle}" press=".onAddArticleToOrder" />
+                    </Toolbar>
+                </headerToolbar>
+                <columns>
+                    <Column><Text text="{i18n>colArticleCode}"/></Column>
+                    <Column><Text text="{i18n>colArticleName}"/></Column>
+                    <Column hAlign="End"><Text text="{i18n>colQuantity}"/></Column>
+                    <Column hAlign="End"><Text text="{i18n>colPrice}"/></Column>
+                </columns>
+                <items>
+                    <ColumnListItem>
+                        <cells>
+                            <Input value="{formModel>CodArticolo}" />
+                            <Input value="{formModel>NomeArticolo}" />
+                            <Input value="{formModel>QuantitaOrdine}" type="Number" />
+                            <Input value="{formModel>Importo}" type="Number" />
+                        </cells>
+                    </ColumnListItem>
+                </items>
+            </Table>
+        </content>
+
+        <footer>
+            <OverflowToolbar>
+                <ToolbarSpacer/>
+                <Button text="{i18n>btnSave}" type="Emphasized" press=".onSave" />
+                <Button text="{i18n>btnCancel}" type="Transparent" press=".onCancel" />
+            </OverflowToolbar>
+        </footer>
+    </Page>
+</mvc:View>

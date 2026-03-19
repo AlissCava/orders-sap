@@ -4,7 +4,7 @@
     displayBlock="true"
     xmlns="sap.m"> 
 
-    <Page id="page" title="{i18n>homePageTitle}">
+   <Page id="homePage" title="{i18n>homePageTitle}">
         <content>
             <Table  id="ordersTable" 
                     items="{/ZES_lista_ordiniSet}" 
@@ -19,7 +19,7 @@
                         <SearchField width="300px" placeholder="{i18n>searchPlaceholder}" liveChange=".onSearch" />
                         <ToolbarSpacer />
                         <Button icon="sap-icon://excel-attachment" text="{i18n>btnExportExcel}" press=".onExport" />
-                        <Button icon="sap-icon://add" text="{i18n>btnNewOrder}" type="Emphasized" press=".onOpenAddDialog" />
+                        <Button icon="sap-icon://add" text="{i18n>btnNewOrder}" type="Emphasized" press=".onNavToCreateOrder" />
                     </OverflowToolbar>
                 </headerToolbar>
                 
@@ -59,32 +59,5 @@
                 </HBox>
             </VBox>
         </content>
-
-        <dependents>
-            <Dialog id="addOrderDialog" title="{i18n>dialogCreateOrderTitle}" contentWidth="400px">
-                <content>
-                    <VBox class="sapUiSmallMargin">
-                        <Label text="{i18n>lblCustomerName}" required="true" />
-                        <Input value="{formModel>/newOrder/CustomerName}" placeholder="{i18n>placeholderCustomer}" />
-                        
-                        <Label text="{i18n>lblArticleCode}" class="sapUiTinyMarginTop" required="true" />
-                        <Input value="{formModel>/newOrder/ArticleCode}" placeholder="{i18n>placeholderArticleCodeEx}" />
-
-                        <Label text="{i18n>lblProductName}" class="sapUiTinyMarginTop"/>
-                        <Input value="{formModel>/newOrder/ProductName}" placeholder="{i18n>placeholderProduct}" />
-                        
-                        <Label text="{i18n>lblQuantity}" class="sapUiTinyMarginTop"/>
-                        <Input value="{formModel>/newOrder/Quantity}" type="Number" />
-                        
-                        <Label text="{i18n>lblUnitPrice}" class="sapUiTinyMarginTop"/>
-                        <Input value="{formModel>/newOrder/UnitPrice}" type="Number" />
-                    </VBox>
-                </content>
-                <buttons>
-                    <Button text="{i18n>btnSave}" type="Emphasized" press=".onSaveOrder" />
-                    <Button text="{i18n>btnCancel}" type="Transparent" press=".onCancelOrder" />
-                </buttons>
-            </Dialog>
-        </dependents>
     </Page>
 </mvc:View>

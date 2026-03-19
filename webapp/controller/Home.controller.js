@@ -15,18 +15,6 @@ sap.ui.define([
         // 1. INIZIALIZZAZIONE DELLA PAGINA
         // ------------------------------------------------------------------------
         onInit: function () {
-            // Modello 1: "formModel" - Serve per pulire e leggere i campi del popup "Nuovo Ordine"
-            const oFormModel = new JSONModel({
-                newOrder: {
-                    CustomerName: "",
-                    ArticleCode: "", 
-                    ProductName: "",
-                    Quantity: 1,
-                    UnitPrice: 0
-                }
-            });
-            this.setModel(oFormModel, "formModel");
-
             // Modello 2: "summaryModel" - Serve per tenere traccia dei totali a fondo pagina.
             // Dato che abbiamo rimosso ordersModel, ci serve un nuovo posto dove salvare i numeri calcolati.
             const oSummaryModel = new JSONModel({
@@ -37,8 +25,18 @@ sap.ui.define([
         },
 
         // ------------------------------------------------------------------------
-        // 2. NAVIGAZIONE AL DETTAGLIO ORDINE
+        // 2. NAVIGAZIONE AL DETTAGLIO / CREAZIONE ORDINE
         // ------------------------------------------------------------------------
+        
+        // Clic su "Nuovo Ordine" (Toolbar)
+        onNavToCreateOrder: function () {
+            // Diciamo al Router di andare alla pagina "OrderForm" passando la parola chiave "new"
+            this.getRouter().navTo("RouteOrderForm", {
+                objectId: "new"
+            });
+        },
+
+        // Clic su una riga della tabella
         onNavToDetail: function (oEvent) {
             // Capiamo quale riga esatta della tabella è stata cliccata
             const oItem = oEvent.getSource();
@@ -49,10 +47,9 @@ sap.ui.define([
             // Estraiamo la chiave univoca: il Numero dell'Ordine (TRADOTTO DA sNumOrdine)
             const sOrderNum = oBindingContext.getProperty("NumOrdine");
 
-            // Diciamo al Router di cambiare pagina verso "RouteOrderDetail" 
-            // passando l'ID dell'ordine nell'URL
-            this.getRouter().navTo("RouteOrderDetail", {
-                orderId: sOrderNum
+            // Diciamo al Router di andare ALLA STESSA pagina "OrderForm", ma passando l'ID vero dell'ordine
+            this.getRouter().navTo("RouteOrderForm", {
+                objectId: sOrderNum
             });
         },
 
@@ -152,87 +149,7 @@ sap.ui.define([
         },
 
         // ------------------------------------------------------------------------
-        // 6. GESTIONE DIALOG (MODAL) E DEEP INSERT
-        // ------------------------------------------------------------------------
-        onOpenAddDialog: function () {
-            // Svuotiamo il form prima di aprirlo, per evitare che mostri dati vecchi
-            const oFormModel = this.getModel("formModel");
-            oFormModel.setProperty("/newOrder", {
-                CustomerName: "", ArticleCode: "", ProductName: "", Quantity: 1, UnitPrice: 0
-            });
-            this.byId("addOrderDialog").open();
-        },
-
-        onCancelOrder: function () {
-            this.byId("addOrderDialog").close();
-        },
-
-        onSaveOrder: function () {
-            const oFormModel = this.getModel("formModel"); 
-            const oODataModel = this.getModel();           
-            const oBundle = this.getResourceBundle();
-            const oFormData = oFormModel.getProperty("/newOrder");
-
-            // Validazione per evitare invii di ordini vuoti
-            if (!oFormData.CustomerName || !oFormData.ArticleCode) {
-                MessageBox.error("Compila i campi obbligatori (Cliente e Codice Articolo).");
-                return;
-            }
-
-            // Calcoli (TRADOTTI IN INGLESE)
-            const iQuantity = parseInt(oFormData.Quantity) || 1;
-            const iPrice = parseInt(oFormData.UnitPrice) || 0;
-            const iTotalAmount = iQuantity * iPrice;
-
-            // IL PAYLOAD PERFETTO (Basato sulle specifiche del documento)
-            const oDeepPayload = {
-                // 1. Campi della testata Deep (LA CHIAVE È "Operation": "C")
-                "Operation": "C", 
-                // "NumOrdine" non lo mandiamo, dice il documento che è progressivo automatico
-                
-                // 2. Navigation Property: Dati Cliente
-                "ZET_lista_ordini": {
-                    "Cliente": oFormData.CustomerName,
-                    "DataOrdine": new Date(), // Lasciamo l'oggetto Date, SAPUI5 V2 Model di solito lo gestisce.
-                    "ImportoTot": iTotalAmount,
-                    "Stato": 1 
-                },
-                
-                // 3. Navigation Property: Array degli Articoli
-                "ZET_dettagli_ordiniSet": [
-                    {
-                        "CodArticolo": parseInt(oFormData.ArticleCode),
-                        "NomeArticolo": oFormData.ProductName,
-                        "QuantitaOrdine": iQuantity,
-                        "Importo": iPrice
-                    }
-                ]
-            };
-
-            sap.ui.core.BusyIndicator.show(0);
-            const that = this;
-
-            // Inviamo a SAP!
-            oODataModel.create("/ZES_DeepOrdiniSet", oDeepPayload, {
-                success: function (oData) {
-                    sap.ui.core.BusyIndicator.hide();
-                    
-                    // Se il backend ci restituisce l'ID creato, lo mostriamo (TRADOTTO DA sNuovoId)
-                    const sNewId = oData.ZET_lista_ordini ? oData.ZET_lista_ordini.NumOrdine : "sconosciuto";
-                    MessageToast.show("Ordine " + sNewId + " creato con successo!");
-                    
-                    that.onCancelOrder();
-                    oODataModel.refresh(true); // Ricarichiamo la tabella
-                },
-                error: function (oError) {
-                    sap.ui.core.BusyIndicator.hide();
-                    that._handleBackendError(oError); 
-                }
-            });
-        },
-
-        // ------------------------------------------------------------------------
-        // 7. ELIMINAZIONE ORDINE (DELETE ODATA)
+        // 6. ELIMINAZIONE ORDINE (DELETE ODATA)
         // ------------------------------------------------------------------------
         onDeleteOrder: function (oEvent) {
             // ---------------------------------------------------------
@@ -301,7 +218,7 @@ sap.ui.define([
         },
 
         // ------------------------------------------------------------------------
-        // 8. FUNZIONE DI SUPPORTO PER GLI ERRORI
+        // 7. FUNZIONE DI SUPPORTO PER GLI ERRORI
         // ------------------------------------------------------------------------
         _handleBackendError: function (oError) {
             let sMsg = "Si è verificato un errore nel server SAP."; // Usiamo let per la riassegnazione
