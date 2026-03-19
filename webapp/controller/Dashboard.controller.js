@@ -12,7 +12,7 @@ sap.ui.define([
 
         _onRouteMatched: function () {
             // Prendiamo il modello OData REALE (senza nome)
-            const oModel = this.getModel(); 
+            const oModel = this.getModel();
             const that = this;
 
             sap.ui.core.BusyIndicator.show(0); // Accendiamo il caricamento
@@ -21,9 +21,9 @@ sap.ui.define([
             oModel.read("/ZES_lista_ordiniSet", {
                 success: function (oData) {
                     sap.ui.core.BusyIndicator.hide();
-                    
+
                     // oData.results contiene l'array dei veri ordini dal server
-                    const aOrders = oData.results; 
+                    const aOrders = oData.results;
 
                     const oStatusCounts = {};
                     const oCustomerCounts = {}; // Sostituiamo Categoria con Cliente
@@ -38,11 +38,11 @@ sap.ui.define([
                     });
 
                     // Trasformiamo i conteggi in array per i grafici
-                    const aStatusStats = Object.keys(oStatusCounts).map(function(sKey) {
+                    const aStatusStats = Object.keys(oStatusCounts).map(function (sKey) {
                         return { label: sKey, value: oStatusCounts[sKey] };
                     });
 
-                    const aCustomerStats = Object.keys(oCustomerCounts).map(function(sKey) {
+                    const aCustomerStats = Object.keys(oCustomerCounts).map(function (sKey) {
                         return { label: sKey, value: oCustomerCounts[sKey] };
                     });
 

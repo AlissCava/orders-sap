@@ -15,10 +15,11 @@
                             <mc:InteractiveDonutChartSegment 
                                 label="{statsModel>label}" 
                                 value="{statsModel>value}" 
-                                displayedValue="{statsModel>value} {i18n>unitOrders}"/>
+                                displayedValue="{statsModel>displayValue}"/>
                         </mc:segments>
                     </mc:InteractiveDonutChart>
                 </HBox>
+                
             </VBox>
         </content>
     </Page>
