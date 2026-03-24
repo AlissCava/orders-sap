@@ -2,8 +2,10 @@ sap.ui.define([
   "orders/controller/BaseController",
   "sap/ui/model/json/JSONModel",
   "sap/m/MessageBox",
-  "sap/m/MessageToast"
-], function (BaseController, JSONModel, MessageBox, MessageToast) {
+  "sap/m/MessageToast",
+  "sap/ui/model/Filter",
+  "sap/ui/model/FilterOperator"
+], function (BaseController, JSONModel, MessageBox, MessageToast, Filter, FilterOperator) {
   "use strict";
 
   return BaseController.extend("orders.controller.OrderForm", {
@@ -17,14 +19,14 @@ sap.ui.define([
     },
 
     _onRouteMatched: function (oEvent) {
-      // Leggiamo l'ID passato nell'URL (es: "new" oppure "1024")
+      // Leggiamo l'ID passato nell'URL (es: "new" oppure "4")
       const sObjectId = oEvent.getParameter("arguments").objectId;
 
       // Creiamo un modello (viewModel) per controllare l'interfaccia (es. Titolo pagina)
       const bIsNew = (sObjectId === "new");
       const oViewModel = new JSONModel({
         isNew: bIsNew,
-        viewTitle: bIsNew ? "Nuovo Ordine" : "Modifica Ordine " + sObjectId
+        viewTitle: bIsNew ? "New Order" : "Edit Order " + sObjectId
       });
       this.setModel(oViewModel, "viewModel");
 
@@ -41,10 +43,11 @@ sap.ui.define([
     // ------------------------------------------------------------------------
     _createEmptyForm: function () {
       // Prepariamo un "guscio vuoto" per il nuovo ordine
+      // I nomi delle proprietà restano quelli del backend SAP per non rompere i collegamenti XML
       const oEmptyOrder = {
-        NumOrdine: "Auto-generato",
+        NumOrdine: "Auto-generated",
         Cliente: "",
-        StatoTxt: "Nuovo",
+        StatoTxt: "New",
         ImportoTot: 0,
         Articoli: [] // Tabella articoli inizialmente vuota
       };
@@ -54,47 +57,68 @@ sap.ui.define([
     },
 
     _loadOrderData: function (sOrderId) {
-      // Prendiamo il modello OData direttamente dal "cervello" centrale dell'app
       const oODataModel = this.getOwnerComponent().getModel();
       const that = this;
 
       sap.ui.core.BusyIndicator.show(0);
 
-      // 1. COSTRUIAMO L'URL A MANO (Bypassiamo createKey che ci blocca)
-      // Di solito in SAP le chiavi, anche se composte da numeri, viaggiano come stringhe ('4')
-      let sPath = "/ZES_lista_ordiniSet('" + sOrderId + "')";
+      // Per sicurezza, trasformiamo l'ID in numero puro per i filtri
+      const iOrderId = parseInt(sOrderId, 10);
 
-      // 2. CHIEDIAMO I DATI A SAP
-      oODataModel.read(sPath, {
-        urlParameters: {
-          "$expand": "ZET_dettagli_ordiniSet"
-        },
-        success: function (oData) {
-          sap.ui.core.BusyIndicator.hide();
+      // 1. PRIMA CHIAMATA: Leggiamo la testata usando un FILTRO (per aggirare il blocco "addressable=false")
+      oODataModel.read("/ZES_lista_ordiniSet", {
+        filters: [new sap.ui.model.Filter("NumOrdine", sap.ui.model.FilterOperator.EQ, iOrderId)],
+        success: function (oHeaderResult) {
 
-          // Trasformiamo i dati per il nostro form
+          // Siccome abbiamo chiesto una "lista" filtrata, il risultato è un array.
+          // Controlliamo che abbia trovato almeno un ordine e prendiamo il primo (e unico)
+          if (!oHeaderResult.results || oHeaderResult.results.length === 0) {
+            sap.ui.core.BusyIndicator.hide();
+            sap.m.MessageBox.error("Order not found on server.");
+            return;
+          }
+
+          const oHeaderData = oHeaderResult.results[0];
+
+          // Trasformiamo i dati della testata per il nostro form
           const oOrderData = {
-            NumOrdine: oData.NumOrdine,
-            Cliente: oData.Cliente,
-            StatoTxt: oData.StatoTxt,
-            ImportoTot: oData.ImportoTot,
-            // Estraiamo l'array degli articoli
-            Articoli: oData.ZET_dettagli_ordiniSet ? oData.ZET_dettagli_ordiniSet.results : []
+            NumOrdine: oHeaderData.NumOrdine,
+            Cliente: oHeaderData.Cliente,
+            StatoTxt: oHeaderData.StatoTxt,
+            ImportoTot: oHeaderData.ImportoTot,
+            Articoli: [] // Inizialmente vuoto
           };
 
-          const oFormModel = new JSONModel(oOrderData);
-          that.setModel(oFormModel, "formModel");
-        },
-        error: function (oError) {
-          sap.ui.core.BusyIndicator.hide();
+          // 2. SECONDA CHIAMATA: Leggiamo gli Articoli di questo ordine con un altro filtro
+          oODataModel.read("/ZES_dettagli_ordiniSet", {
+            filters: [new sap.ui.model.Filter("NumOrdine", sap.ui.model.FilterOperator.EQ, iOrderId)],
+            success: function (oItemsData) {
+              sap.ui.core.BusyIndicator.hide();
 
-          // Stampiamo l'errore tecnico per capire se SAP voleva il numero senza apici
-          MessageBox.error("Il server ha rifiutato la richiesta. Controlla la console F12.");
-          console.error("Dettaglio errore:", oError);
+              // Aggiungiamo gli articoli recuperati ai dati dell'ordine
+              oOrderData.Articoli = oItemsData.results || [];
+
+              // Infine, passiamo tutto alla View
+              const oFormModel = new sap.ui.model.json.JSONModel(oOrderData);
+              that.setModel(oFormModel, "formModel");
+            },
+            error: function () {
+              sap.ui.core.BusyIndicator.hide();
+              sap.m.MessageBox.warning("Order header loaded, but failed to load items.");
+
+              // Mostriamo comunque la testata anche se gli articoli falliscono
+              const oFormModel = new sap.ui.model.json.JSONModel(oOrderData);
+              that.setModel(oFormModel, "formModel");
+            }
+          });
+
+        },
+        error: function () {
+          sap.ui.core.BusyIndicator.hide();
+          sap.m.MessageBox.error("The server rejected the header request.");
         }
       });
     },
-
     // ------------------------------------------------------------------------
     // 3. AZIONI DELLA PAGINA (Aggiungi Riga, Salva, Annulla)
     // ------------------------------------------------------------------------
@@ -102,10 +126,10 @@ sap.ui.define([
     // Funzione per il tasto "+" nella tabella articoli
     onAddArticleToOrder: function () {
       const oFormModel = this.getModel("formModel");
-      const aArticoli = oFormModel.getProperty("/Articoli");
+      const aArticles = oFormModel.getProperty("/Articoli");
 
       // Aggiungiamo una riga vuota all'array
-      aArticoli.push({
+      aArticles.push({
         CodArticolo: "",
         NomeArticolo: "",
         QuantitaOrdine: 1,
@@ -113,13 +137,12 @@ sap.ui.define([
       });
 
       // Aggiorniamo il modello (la tabella si aggiornerà da sola!)
-      oFormModel.setProperty("/Articoli", aArticoli);
+      oFormModel.setProperty("/Articoli", aArticles);
     },
 
     onSave: function () {
-      // Per ora mettiamo un avviso. La logica di salvataggio (Deep Insert o Update) 
-      // la scriveremo non appena testiamo che l'interfaccia funzioni!
-      MessageToast.show("Dati pronti per il salvataggio!");
+      // Placeholder temporaneo in attesa della logica di salvataggio definitiva
+      MessageToast.show("Data ready to be saved!");
     },
 
     onCancel: function () {
