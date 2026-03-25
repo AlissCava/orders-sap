@@ -48,19 +48,19 @@
                         <Button icon="sap-icon://add" text="{i18n>btnNewArticle}" press=".onAddArticleToOrder" />
                     </Toolbar>
                 </headerToolbar>
-                <columns>
-                    <Column><Text text="{i18n>colArticleCode}"/></Column>
-                    <Column><Text text="{i18n>colArticleName}"/></Column>
-                    <Column hAlign="End"><Text text="{i18n>colQuantity}"/></Column>
-                    <Column hAlign="End"><Text text="{i18n>colPrice}"/></Column>
+              <columns>
+                    <Column width="20%"><Text text="{i18n>colArticleCode}"/></Column>
+                    <Column width="40%"><Text text="{i18n>colArticleName}"/></Column>
+                    <Column width="20%" hAlign="Center"><Text text="{i18n>colQuantity}"/></Column>
+                    <Column width="20%" hAlign="Center"><Text text="{i18n>colPrice}"/></Column>
                 </columns>
                 <items>
                     <ColumnListItem>
                         <cells>
                             <Input value="{formModel>CodArticolo}" />
                             <Input value="{formModel>NomeArticolo}" />
-                            <Input value="{formModel>QuantitaOrdine}" type="Number" />
-                            <Input value="{formModel>Importo}" type="Number" />
+                            <Input value="{formModel>QuantitaOrdine}" type="Number" textAlign="Center" />
+                            <Input value="{formModel>Importo}" type="Number" textAlign="Center" />
                         </cells>
                     </ColumnListItem>
                 </items>
