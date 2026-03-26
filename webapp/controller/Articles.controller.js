@@ -96,7 +96,6 @@ sap.ui.define([
             // Chiamata HTTP DELETE verso SAP
             oODataModel.remove(sPath, {
                 success: function () {
-                    sap.ui.core.BusyIndicator.hide(); // Via la rotellina
                     MessageToast.show("Articolo eliminato con successo!");
                     // Non serve ricaricare la pagina, la riga sparirà da sola dalla tabella!
                 },
@@ -106,26 +105,5 @@ sap.ui.define([
                 }
             });
         },
-
-        // Questa funzione "smonta" il pacchetto di errore incomprensibile che SAP ci invia,
-        // cercando di tirare fuori solo la frase di testo scritta in italiano dal backendista.
-        _handleBackendError: function (oError) {
-            let sMsg = "Si è verificato un errore di comunicazione con il server."; 
-
-            try {
-                // Cerchiamo di parsare la risposta di testo come se fosse un oggetto JSON
-                const oErrorObj = JSON.parse(oError.responseText);
-                
-                // Se la struttura dell'errore SAP esiste, peschiamo il messaggio profondo
-                if (oErrorObj.error && oErrorObj.error.message && oErrorObj.error.message.value) {
-                    sMsg = oErrorObj.error.message.value; 
-                }
-            } catch (e) {
-                // Se fallisce il parse (es. errore 500 generico), teniamo il messaggio di default
-            }
-
-            // Mostriamo il messaggio all'utente in un popup rosso bloccante
-            MessageBox.error(sMsg);
-        }
     });
 });

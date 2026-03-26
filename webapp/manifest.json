@@ -59,14 +59,14 @@
       },
       "routes": [
         {
-          "name": "RouteHome",
+          "name": "RouteDashboard",
           "pattern": "",
-          "target": ["TargetHome"]
+          "target": ["TargetDashboard"]
         },
         {
-          "name": "RouteDashboard",
-          "pattern": "dashboard",
-          "target": ["TargetDashboard"]
+          "name": "RouteHome",
+          "pattern": "orders",
+          "target": ["TargetHome"]
         },
         {
           "name": "RouteArticles",
@@ -106,14 +106,14 @@
           "viewId": "OrderDetail",
           "viewName": "OrderDetail"
         },
-          "TargetOrderForm": {
+        "TargetOrderForm": {
           "viewType": "XML",
           "transition": "slide",
           "clearControlAggregation": false,
           "viewId": "orderForm",
           "viewName": "OrderForm"
         },
-          "TargetArticleForm": {
+        "TargetArticleForm": {
           "viewType": "XML",
           "transition": "slide",
           "clearControlAggregation": false,

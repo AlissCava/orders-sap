@@ -19,8 +19,11 @@
         <tnt:sideContent>
             <tnt:SideNavigation id="sideNavigation" itemSelect=".onItemSelect">
                 <tnt:NavigationList>
-                    <tnt:NavigationListItem text="{i18n>navOrders}" icon="sap-icon://list" key="RouteHome" />
                     <tnt:NavigationListItem text="{i18n>navDashboard}" icon="sap-icon://bar-chart" key="RouteDashboard" />
+                    
+                    <tnt:NavigationListItem text="{i18n>navOrders}" icon="sap-icon://list" key="RouteHome" />
+                    
+                    <tnt:NavigationListItem text="{i18n>navArticles}" icon="sap-icon://product" key="RouteArticles" />
                 </tnt:NavigationList>
             </tnt:SideNavigation>
         </tnt:sideContent>
