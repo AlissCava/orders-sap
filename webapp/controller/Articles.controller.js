@@ -1,218 +1,130 @@
 sap.ui.define([
-    "orders/controller/BaseController", // Il nostro controller "padre"
-    "sap/ui/model/json/JSONModel",      // Per il modello locale del popup
-    "sap/m/MessageToast",               // Per i messaggi a comparsa rapida (es. "Salvato!")
-    "sap/m/MessageBox"                  // Per i messaggi di errore bloccanti del backend
-], function (BaseController, JSONModel, MessageToast, MessageBox) {
+    "orders/controller/BaseController", // Il nostro controller "padre" con le funzioni base
+    "sap/m/MessageToast",               // Per i messaggi verdi a comparsa rapida (es. "Eliminato!")
+    "sap/m/MessageBox"                  // Per i messaggi di errore bloccanti
+], function (BaseController, MessageToast, MessageBox) {
     "use strict";
 
     return BaseController.extend("orders.controller.Articles", {
 
-        // ------------------------------------------------------------------------
+        // ========================================================================
         // 1. INIZIALIZZAZIONE
-        // ------------------------------------------------------------------------
+        // ========================================================================
         onInit: function () {
-            // Creiamo un modello locale ('articleModel') dedicato solo a questa pagina.
-            // Ci serve per due motivi:
-            // 1. Legare gli input del form senza usare i this.byId().getValue()
-            // 2. Tenere traccia se stiamo creando un NUOVO articolo o MODIFICANDO uno esistente (isEditMode)
-            const oLocalModel = new JSONModel({
-                newArticle: {
-                    CodArticolo: "",
-                    NomeArticolo: "",
-                    QuantitaDisp: "0",
-                    Importo: "0.00"
-                },
-                isEditMode: false // Flag: Falso = Creazione, Vero = Modifica
+            // In questa nuova architettura a pagina intera, la lista degli articoli
+            // non ha più bisogno di un modello locale per i popup.
+            // Si occupa solo di leggere i dati dal server (lo fa già l'XML da solo)
+            // e di smistare il traffico verso il nuovo Form.
+        },
+
+        // ========================================================================
+        // 2. NAVIGAZIONE (IL "VIGILE URBANO")
+        // ========================================================================
+
+        // Questa funzione scatta quando premi il bottone "Nuovo Articolo" in alto
+        onCreateArticle: function () {
+            // Usiamo il Router di SAPUI5 per cambiare pagina.
+            // Diciamo: "Portami alla pagina RouteArticleForm e passagli il parametro 'new'".
+            // Il controller di destinazione leggerà 'new' e capirà che deve creare un form vuoto.
+            this.getRouter().navTo("RouteArticleForm", {
+                objectId: "new"
             });
-            
-            // Assegniamo il modello dandogli un nome, così non si confonde con il modello OData globale
-            this.setModel(oLocalModel, "articleModel");
         },
 
-        // ------------------------------------------------------------------------
-        // 2. GESTIONE DEL DIALOG (POPUP)
-        // ------------------------------------------------------------------------
-
-        // Quando clicchi su "Nuovo Articolo"
-        onOpenAddArticleDialog: function () {
-            const oLocalModel = this.getModel("articleModel");
+        // Questa funzione scatta quando CLICCHI SU UNA RIGA della tabella
+        onArticlePress: function (oEvent) {
+            // 1. Capiamo esattamente quale riga della tabella hai cliccato
+            const oItem = oEvent.getSource();
             
-            // Resettiamo i campi per assicurarci che il popup sia vuoto
-            oLocalModel.setProperty("/newArticle", {
-                CodArticolo: "",
-                NomeArticolo: "",
-                QuantitaDisp: "0",
-                Importo: "0.00"
+            // 2. Estraiamo il "Codice Articolo" specifico di quella riga (es. "10")
+            const sArticleCode = oItem.getBindingContext().getProperty("CodArticolo");
+            
+            // 3. Diciamo al Router: "Portami alla pagina RouteArticleForm, 
+            // ma passagli il codice articolo invece di 'new'".
+            // Il controller di destinazione leggerà il numero e scaricherà i dati da SAP.
+            this.getRouter().navTo("RouteArticleForm", {
+                objectId: sArticleCode
             });
-            // Diciamo all'app che siamo in modalità "Creazione"
-            oLocalModel.setProperty("/isEditMode", false);
-
-            this.byId("addArticleDialog").open();
         },
 
-        // Quando clicchi su una riga esistente per modificarla
-        onEditArticle: function (oEvent) {
-            // 1. Scopriamo quale riga è stata cliccata tramite il "Binding Context"
-            const oContext = oEvent.getSource().getBindingContext(); // Non specifichiamo il nome perché OData è il modello di default
-            const oSelectedArticle = oContext.getObject(); // Estrae l'oggetto riga (CodArticolo, NomeArticolo, ecc.)
+        // ========================================================================
+        // 3. ELIMINAZIONE ARTICOLO (DELETE ODATA)
+        // ========================================================================
 
-            const oLocalModel = this.getModel("articleModel");
-
-            // 2. Copiamo i dati della riga dentro il nostro modello del popup.
-            // Usiamo Object.assign({}, ...) per fare una copia e non modificare accidentalmente la tabella 
-            // prima che l'utente prema "Salva".
-            oLocalModel.setProperty("/newArticle", Object.assign({}, oSelectedArticle));
-            
-            // 3. Diciamo all'app che siamo in modalità "Modifica"
-            oLocalModel.setProperty("/isEditMode", true);
-
-            this.byId("addArticleDialog").open();
-        },
-
-        // Quando clicchi "Annulla" nel popup
-        onCloseArticleDialog: function () {
-            this.byId("addArticleDialog").close();
-        },
-
-        // ------------------------------------------------------------------------
-        // 3. COMUNICAZIONE CON IL BACKEND ODATA (CREATE & UPDATE)
-        // ------------------------------------------------------------------------
-        
-        onSaveArticle: function () {
-            const oBundle = this.getResourceBundle();
-            const oLocalModel = this.getModel("articleModel");
-            
-            // Leggiamo i dati dal modello locale (niente byId!)
-            const oArticleData = oLocalModel.getProperty("/newArticle");
-            const bIsEditMode = oLocalModel.getProperty("/isEditMode");
-
-            // Validazione base: controlliamo se i campi chiave sono vuoti
-            if (!oArticleData.CodArticolo || !oArticleData.NomeArticolo) {
-                MessageBox.error(oBundle.getText("msgErrorFieldsEmpty"));
-                return; // Blocca l'esecuzione
-            }
-
-            // Preparazione dei dati: formattiamo i numeri in stringhe, 
-            // dato che nel backend ABAP i campi NUMC (es. numc3, numc4) viaggiano solitamente come stringhe.
-            const oPayload = {
-                CodArticolo: oArticleData.CodArticolo.toString(),
-                NomeArticolo: oArticleData.NomeArticolo,
-                QuantitaDisp: oArticleData.QuantitaDisp.toString(),
-                Importo: oArticleData.Importo.toString()
-            };
-
-            // Prendiamo il modello OData ufficiale (quello globale, senza nome)
-            const oODataModel = this.getModel();
-
-            // Mostriamo una rotellina di caricamento durante la chiamata al server
-            sap.ui.core.BusyIndicator.show(0);
-
-            const that = this; // Salviamo il "this" per usarlo dentro le funzioni di successo/errore
-
-            if (bIsEditMode) {
-                // --- UPDATE: MODIFICA ARTICOLO ---
-                // Il percorso OData per modificare deve includere la chiave (es. "/ZES_articoliSet('101')")
-                const sPath = "/ZES_articoliSet('" + oPayload.CodArticolo + "')";
-
-                oODataModel.update(sPath, oPayload, {
-                    success: function () {
-                        sap.ui.core.BusyIndicator.hide();
-                        MessageToast.show(oBundle.getText("msgArticleUpdated"));
-                        that.onCloseArticleDialog();
-                    },
-                    error: function (oError) {
-                        sap.ui.core.BusyIndicator.hide();
-                        that._handleBackendError(oError);
-                    }
-                });
-
-            } else {
-                // --- CREATE: NUOVO ARTICOLO ---
-                // Il percorso OData per creare punta alla "cartella" generale (EntitySet)
-                oODataModel.create("/ZES_articoliSet", oPayload, {
-                    success: function () {
-                        sap.ui.core.BusyIndicator.hide();
-                        MessageToast.show(oBundle.getText("msgArticleCreated"));
-                        that.onCloseArticleDialog();
-                    },
-                    error: function (oError) {
-                        sap.ui.core.BusyIndicator.hide();
-                        // Chiamiamo una funzione dedicata per estrarre l'errore dal BE
-                        that._handleBackendError(oError); 
-                    }
-                });
-            }
-        },
-
-        // ------------------------------------------------------------------------
-        // 5. ELIMINAZIONE ARTICOLO (DELETE ODATA)
-        // ------------------------------------------------------------------------
-
-        // Questa funzione scatta quando l'utente preme il tasto "Elimina" su una riga
+        // Questa funzione scatta quando l'utente preme il cestino rosso o il tasto "Elimina"
         onDeleteArticle: function (oEvent) {
-            // 1. Identifichiamo l'articolo cliccato
-            const oContext = oEvent.getParameter("listItem").getBindingContext();
-            const sPath = oContext.getPath(); // Es: "/ZES_articoliSet('101')"
+            // 1. Identifichiamo il percorso esatto dell'articolo sul server
+            // oContext.getPath() ci darà una stringa tipo: "/ZES_articoliSet(10)"
+            // Usa "getParameter('listItem')" se il tasto elimina è gestito dalla lista,
+            // oppure "getSource()" se il tasto è dentro la riga stessa.
+            let oContext;
+            if (oEvent.getParameter("listItem")) {
+                oContext = oEvent.getParameter("listItem").getBindingContext();
+            } else {
+                oContext = oEvent.getSource().getBindingContext();
+            }
+            
+            const sPath = oContext.getPath(); 
+            const that = this; // Salviamo il controller in memoria
 
-            const oBundle = this.getResourceBundle();
-            const that = this; // Salviamo il riferimento al controller
-
-            // 2. Chiediamo conferma all'utente prima di cancellare definitivamente
-            sap.m.MessageBox.confirm(oBundle.getText("msgDeleteConfirm"), {
+            // 2. Chiediamo conferma all'utente (non si sa mai, magari ha cliccato per sbaglio!)
+            MessageBox.confirm("Sei sicura di voler eliminare questo articolo?", {
                 title: "Conferma Eliminazione",
-                actions: [sap.m.MessageBox.Action.YES, sap.m.MessageBox.Action.NO],
+                actions: [MessageBox.Action.YES, MessageBox.Action.NO],
                 onClose: function (sAction) {
-                    if (sAction === sap.m.MessageBox.Action.YES) {
-                        // Se l'utente dice SI, avviamo la cancellazione sul backend
+                    if (sAction === MessageBox.Action.YES) {
+                        // Se l'utente dice SI, procediamo con l'esecuzione!
                         that._deleteArticleFromBackend(sPath);
                     }
                 }
             });
         },
 
-        // Funzione interna che fa la vera chiamata OData al server SAP
+        // ========================================================================
+        // 4. CHIAMATA AL SERVER (IL LAVORO SPORCO)
+        // ========================================================================
+
+        // Funzione interna che bussa al server SAP e chiede la cancellazione
         _deleteArticleFromBackend: function (sPath) {
-            const oODataModel = this.getModel(); // Prendiamo il modello OData principale
-            const oBundle = this.getResourceBundle();
+            // Prendiamo il modello OData globale (quello che parla col backend)
+            const oODataModel = this.getOwnerComponent().getModel(); 
             const that = this;
 
-            sap.ui.core.BusyIndicator.show(0); // Mostriamo il caricamento
+            // Mostriamo la rotellina di caricamento
+            sap.ui.core.BusyIndicator.show(0); 
 
-            // Metodo OData 'remove' per eliminare l'entità
+            // Chiamata HTTP DELETE verso SAP
             oODataModel.remove(sPath, {
                 success: function () {
-                    sap.ui.core.BusyIndicator.hide();
-                    sap.m.MessageToast.show(oBundle.getText("msgArticleDeleted"));
+                    sap.ui.core.BusyIndicator.hide(); // Via la rotellina
+                    MessageToast.show("Articolo eliminato con successo!");
+                    // Non serve ricaricare la pagina, la riga sparirà da sola dalla tabella!
                 },
                 error: function (oError) {
                     sap.ui.core.BusyIndicator.hide();
-                    that._handleBackendError(oError); // Ricicliamo la nostra funzione per gli errori
+                    that._handleBackendError(oError); // Deleghiamo la gestione dell'errore
                 }
             });
         },
 
-        // ------------------------------------------------------------------------
-        // 4. GESTIONE ERRORI DAL BACKEND ODATA (PUNTO 5 DELLA TO-DO)
-        // ------------------------------------------------------------------------
-        
-        // Questa funzione "smonta" il pacchetto di errore che SAP ci invia indietro
-        // per estrarre il testo del messaggio (es. "Inserimento non andato a buon fine")
+        // Questa funzione "smonta" il pacchetto di errore incomprensibile che SAP ci invia,
+        // cercando di tirare fuori solo la frase di testo scritta in italiano dal backendista.
         _handleBackendError: function (oError) {
-            const oBundle = this.getResourceBundle();
-            let sMsg = oBundle.getText("msgErrorBackend"); // Messaggio generico di default (USIAMO LET PERCHE' VERRA' SOVRASCRITTO)
+            let sMsg = "Si è verificato un errore di comunicazione con il server."; 
 
             try {
-                // Il server OData restituisce gli errori in formato testo/JSON dentro oError.responseText
+                // Cerchiamo di parsare la risposta di testo come se fosse un oggetto JSON
                 const oErrorObj = JSON.parse(oError.responseText);
+                
+                // Se la struttura dell'errore SAP esiste, peschiamo il messaggio profondo
                 if (oErrorObj.error && oErrorObj.error.message && oErrorObj.error.message.value) {
-                    sMsg = oErrorObj.error.message.value; // Estrae il messaggio reale da SAP
+                    sMsg = oErrorObj.error.message.value; 
                 }
             } catch (e) {
-                // Se la risposta non è un JSON valido, teniamo il messaggio di default
+                // Se fallisce il parse (es. errore 500 generico), teniamo il messaggio di default
             }
 
-            // Mostra un popup bloccante con l'errore
+            // Mostriamo il messaggio all'utente in un popup rosso bloccante
             MessageBox.error(sMsg);
         }
     });
