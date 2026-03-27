@@ -10,7 +10,7 @@
             <f:SimpleForm editable="true" layout="ResponsiveGridLayout" title="Article Details">
                 <f:content>
                     <Label text="Article Code" required="true" />
-                    <Input value="{formModel>/CodArticolo}" editable="{viewModel>/isNew}" type="Number" />
+                    <Input value="{formModel>/CodArticolo}" editable="false" />
 
                     <Label text="Article Name" required="true" />
                     <Input value="{formModel>/NomeArticolo}" maxLength="50" />

@@ -47,18 +47,71 @@ sap.ui.define([
         // 2. PREPARAZIONE E CARICAMENTO DEI DATI (IL "formModel")
         // ========================================================================
         _createEmptyForm: function () {
-            // Prepariamo un oggetto Javascript vuoto con la stessa struttura che si aspetta SAP.
-            // Questo è fondamentale per far funzionare il "Two-Way Binding" (collegamento bidirezionale) con l'XML.
-            const oEmptyArticle = {
-                CodArticolo: "",
-                NomeArticolo: "",
-                Importo: 0,
-                QuantitaDisp: 0
-            };
+            // 1. Recuperiamo il modello OData principale (quello che parla col server SAP)
+            const oODataModel = this.getOwnerComponent().getModel();
             
-            // Inseriamo questo oggetto in un JSONModel chiamato "formModel"
-            const oFormModel = new JSONModel(oEmptyArticle);
-            this.setModel(oFormModel, "formModel");
+            // Salviamo il riferimento al controller ('this') nella variabile 'that'.
+            // Ci serve perché dentro le funzioni 'success' ed 'error' il valore di 'this' cambia 
+            // e non punterebbe più al nostro controller originale.
+            const that = this;
+
+            // 2. Mostriamo la rotellina di caricamento per bloccare lo schermo
+            // mentre aspettiamo che il server ci risponda.
+            sap.ui.core.BusyIndicator.show(0);
+
+            // 3. Facciamo una chiamata di LETTURA (GET) alla tabella degli articoli.
+            // Invece di scaricarli tutti (che rallenterebbe tantissimo l'app), 
+            // diciamo al database SAP di fare il lavoro sporco per noi usando i parametri OData:
+            oODataModel.read("/ZES_articoliSet", {
+                urlParameters: {
+                    "$orderby": "CodArticolo desc", // Ordina i risultati dal Codice più grande al più piccolo
+                    "$top": 1                       // Di tutta la lista, mandaci SOLO il primo risultato
+                },
+                success: function (oData) {
+                    // Il server ha risposto! Nascondiamo subito la rotellina di caricamento
+                    sap.ui.core.BusyIndicator.hide();
+                    
+                    // Impostiamo un codice di partenza di default (nel caso il database fosse completamente vuoto)
+                    let iNextCode = 1; 
+
+                    // 4. Controlliamo se il server ci ha restituito almeno un record
+                    if (oData.results && oData.results.length > 0) {
+                        
+                        // Estraiamo il Codice Articolo dell'unico risultato che ci è arrivato (che è il più alto in assoluto).
+                        // Usiamo parseInt(..., 10) per forzare Javascript a trattarlo come un numero in base 10 
+                        // e non come una parola. Altrimenti, se sommassimo la stringa "15" + 1, il risultato sarebbe "151"!
+                        const iHighestCode = parseInt(oData.results[0].CodArticolo, 10);
+                        
+                        // Calcoliamo il progressivo: aggiungiamo matematicamente 1 al codice più alto
+                        iNextCode = iHighestCode + 1; 
+                    }
+
+                    // 5. Ora prepariamo l'oggetto JSON per il nostro form vuoto, 
+                    // iniettando il nuovo numero progressivo appena calcolato.
+                    const oEmptyArticle = {
+                        CodArticolo: iNextCode, // Il nostro campo bloccato ora ha il numero perfetto!
+                        NomeArticolo: "",
+                        Importo: 0,
+                        QuantitaDisp: 0
+                    };
+                    
+                    // 6. Creiamo il Modello JSON locale e lo assegniamo alla vista.
+                    // Facendo questo, i campi input sullo schermo si aggiorneranno istantaneamente.
+                    const oFormModel = new sap.ui.model.json.JSONModel(oEmptyArticle);
+                    that.setModel(oFormModel, "formModel");
+                },
+                error: function (oError) {
+                    // Se la chiamata fallisce (es. server offline o errore di rete), nascondiamo la rotellina
+                    sap.ui.core.BusyIndicator.hide();
+                    
+                    // Mostriamo il popup di errore estraendo il testo da SAP
+                    that._showError(oError); 
+                    
+                    // Riportiamo l'utente alla lista articoli, perché senza il codice progressivo 
+                    // non possiamo fargli creare un articolo valido.
+                    that.onNavBack(); 
+                }
+            });
         },
 
         _loadArticleData: function (sArticleId) {
