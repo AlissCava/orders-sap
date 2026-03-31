@@ -7,6 +7,7 @@
    <Page id="homePage" title="{i18n>homePageTitle}">
         <content>
             <Table  id="ordersTable" 
+                    class="myCustomCard"
                     items="{/ZES_lista_ordiniSet}" 
                     mode="Delete" 
                     delete=".onDeleteOrder" 
@@ -28,7 +29,7 @@
                     <Column><Text text="{i18n>colCustomer}" /></Column>
                     <Column><Text text="{i18n>colOrderDate}" /></Column> 
                     <Column hAlign="End"><Text text="{i18n>colTotalAmount}" /></Column>
-                    <Column><Text text="{i18n>colStatus}" /></Column>
+                    <Column hAlign="Center"><Text text="{i18n>colStatus}" /></Column>
                 </columns>
 
                 <items>
@@ -42,13 +43,17 @@
                                 formatOptions: { pattern: 'dd/MM/yyyy' } 
                             }" />
                             <ObjectNumber number="{ImportoTot}" unit="€" />
-                            <Text text="{StatoTxt}" />
+                            
+                            <ObjectStatus 
+                                text="{StatoTxt}" 
+                                state="{= ${StatoTxt} === 'Completato' ? 'Success' : (${StatoTxt} === 'Annullato' ? 'Error' : 'Warning') }" 
+                                icon="{= ${StatoTxt} === 'Completato' ? 'sap-icon://sys-enter-2' : (${StatoTxt} === 'Annullato' ? 'sap-icon://error' : 'sap-icon://in-progress') }" />
                         </cells>
                     </ColumnListItem>
                 </items>
             </Table>
             
-            <VBox class="sapUiSmallMargin" alignItems="End">
+            <VBox class="myCustomCard sapUiSmallMargin" alignItems="End">
                 <HBox alignItems="Center" class="sapUiTinyMarginBottom">
                     <Label text="{i18n>lblTotalOrders}" design="Bold" class="sapUiSmallMarginEnd" />
                     <Text text="{summaryModel>/TotalCount}" />

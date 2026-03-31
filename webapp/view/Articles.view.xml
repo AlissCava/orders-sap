@@ -6,7 +6,7 @@
 
     <Page title="{i18n>articlesPageTitle}" showNavButton="true" navButtonPress=".onNavBack">
         <content>
-            <Table id="articlesTable" items="{/ZES_articoliSet}">
+            <Table id="articlesTable" items="{/ZES_articoliSet}" class="myCustomCard">
             
            <headerToolbar>
                 <OverflowToolbar>
@@ -18,10 +18,18 @@
             </headerToolbar>
 
             <columns>
-                <Column><Text text="Code" /></Column>
-                <Column><Text text="Name" /></Column>
-                <Column><Text text="Price" /></Column>
-                <Column><Text text="Available Quantity" /></Column>
+                <Column>
+                    <Text text="{i18n>colArticleCode}" />
+                </Column>
+                <Column>
+                    <Text text="{i18n>colArticleName}" />
+                </Column>
+                <Column hAlign="End">
+                    <Text text="{i18n>colAvailableQty}" />
+                </Column>
+                <Column hAlign="End">
+                    <Text text="{i18n>colPrice}" />
+                </Column>
             </columns>
 
             <items>

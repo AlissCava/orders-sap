@@ -1,117 +1,70 @@
-/* ========================================================= */
-/* TEMA LILLA PERSONALIZZATO - ZERO BLU AMMESSO              */
-/* ========================================================= */
+/* ========================================================== */
+/* TEMA LILLA PERSONALIZZATO (Elegante e ad Alto Contrasto)   */
+/* ========================================================== */
 
-/* 1. La barra superiore (ToolHeader) */
-.sapTntToolHeader {
-  background-color: #865894 !important;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+/* 1. Sfondo generale dell'app leggermente scaldato */
+.sapMApp {
+    background-color: #fbf8ff !important; /* Lilla chiarissimo, quasi bianco, molto luminoso */
 }
 
-.sapTntToolHeader .sapMTitle,
-.sapTntToolHeader .sapUiIcon {
-  color: #ffffff !important;
-  letter-spacing: 1px;
+/* 2. Titoli delle pagine: Lilla scuro per un contrasto perfetto e font grande */
+.sapMPageHeader .sapMTitle {
+    font-size: 1.75rem !important;
+    font-weight: 800 !important;
+    color: #4a148c !important; /* Viola/Lilla scuro ad altissima leggibilità */
 }
 
-/* 2. Il bottone "Nuovo Ordine" */
+/* 3. Effetto "Card" per Tabelle e Form con bordi lilla morbidi ma netti */
+.myCustomCard {
+    box-shadow: 0 6px 14px rgba(74, 20, 140, 0.12) !important;
+    border-radius: 12px !important;
+    border: 2px solid #ce93d8 !important; /* Bordo lilla marcato per definire bene l'area */
+    background-color: #ffffff !important;
+    margin: 1rem !important;
+    padding: 1rem !important;
+}
+
+/* 4. Evidenziazione netta delle righe della tabella al passaggio del mouse */
+.sapMListTblRow:hover {
+    background-color: #f3e5f5 !important; /* Sfondo lilla pastello al passaggio, molto elegante */
+    cursor: pointer !important;
+}
+
+/* 5. Testo delle colonne della tabella più grande e marcato */
+.sapMColumnHeader .sapMText {
+    font-weight: bold !important;
+    font-size: 1.1rem !important;
+    color: #38006b !important; /* Viola scurissimo */
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* 6. Pulsanti principali (Es. Salva, Nuovo Articolo) */
 .sapMBtnEmphasized {
-  background-color: #b388ff !important;
-  border-color: #7e57c2 !important;
-  text-shadow: none !important;
+    background-color: #7b1fa2 !important; /* Lilla/Viola intenso e vibrante */
+    border-color: #4a148c !important;
+    color: #ffffff !important;
+    font-weight: bold !important;
+    font-size: 1.1rem !important;
+    border-radius: 8px !important;
+    text-shadow: none !important; /* Rimuove ombre fastidiose dal testo */
 }
 
+/* 7. Pulsanti principali al passaggio del mouse */
 .sapMBtnEmphasized:hover {
-  background-color: #7e57c2 !important;
+    background-color: #4a148c !important; /* Più scuro e deciso al passaggio */
 }
 
-/* 3. Bottoni trasparenti (Caccia al blu di "Esporta Excel") */
-.sapMBtnTransparent .sapMBtnIcon,
-.sapMBtnTransparent .sapMBtnContent {
-  color: #7e57c2 !important;
-  /* Lilla scuro per il testo e l'icona */
+/* 8. Campi di input: testo nitido e bordi lilla per trovare subito dove scrivere */
+.sapMInputBaseInner {
+    font-size: 1.1rem !important;
+    font-weight: bold !important;
+    color: #1a1a1a !important; /* Quasi nero, per spiccare bene */
+    border: 2px solid #ab47bc !important; /* Bordo lilla per delineare perfettamente la casella */
+    border-radius: 6px !important;
 }
 
-/* 4. Menu laterale (Caccia alla strisciolina blu) */
-.sapTntNavLIItemSelected {
-  background-color: #f3e5f5 !important;
-}
-
-.sapTntNavLIItemSelected .sapTntNavLIText,
-.sapTntNavLIItemSelected .sapTntNavLIIcon {
-  color: #7e57c2 !important;
-}
-
-/* Questa è la maledetta righina blu di selezione a sinistra! */
-.sapTntNavLIItemSelected::before {
-  background-color: #7e57c2 !important;
-}
-
-/* 5. Paginazione Tabella (Caccia al blu di "Mostra di più") */
-.sapMGrowingListTrigger .sapMSLITitle {
-  color: #7e57c2 !important;
-  font-weight: bold !important;
-}
-
-.sapMGrowingListTrigger .sapMGrowingListDescription {
-  color: #b388ff !important;
-  /* Numerini [3 / 4] in lilla chiaro */
-}
-
-/* ========================================================= */
-/* 6. IL GRAFICO A CIAMBELLA (Palette di sfumature LILLAAAAAAA)    */
-/* ========================================================= */
-
-/* Gli spicchi della ciambella */
-.sapSuiteIDCColor1 {
-  fill: #4a3052 !important;
-}
-
-/* Prugna (Completato) */
-.sapSuiteIDCColor2 {
-  fill: #7e57c2 !important;
-}
-
-/* Lilla Scuro (In Lavorazione) */
-.sapSuiteIDCColor3 {
-  fill: #b388ff !important;
-}
-
-/* Lilla Spada Laser (Spedito) */
-.sapSuiteIDCColor4 {
-  fill: #d1c4e9 !important;
-}
-
-/* Lilla Chiaro */
-.sapSuiteIDCColor5 {
-  fill: #f3e5f5 !important;
-}
-
-/* Lilla Chiarissimo */
-
-/* I quadratini della legenda di fianco al grafico */
-.sapSuiteILegendColor1 {
-  background-color: #4a3052 !important;
-}
-
-.sapSuiteILegendColor2 {
-  background-color: #7e57c2 !important;
-}
-
-.sapSuiteILegendColor3 {
-  background-color: #b388ff !important;
-}
-
-.sapSuiteILegendColor4 {
-  background-color: #d1c4e9 !important;
-}
-
-.sapSuiteILegendColor5 {
-  background-color: #f3e5f5 !important;
-}
-
-/* Bordo di separazione bianco tra gli spicchi per renderli stilosi */
-.sapSuiteIDCSegment path {
-  stroke: #ffffff !important;
-  stroke-width: 2px !important;
+/* 9. Icone del menu laterale in tinta */
+.sapUiIcon {
+    color: #7b1fa2 !important;
 }

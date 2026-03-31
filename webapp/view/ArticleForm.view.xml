@@ -23,11 +23,20 @@
                 </f:content>
             </f:SimpleForm>
         </content>
-        <footer>
+
+       <footer>
             <OverflowToolbar>
-                <ToolbarSpacer/>
-                <Button text="Save" type="Emphasized" press=".onSave" />
-                <Button text="Cancel" type="Transparent" press=".onCancel" />
+                <ToolbarSpacer/> 
+                
+                <Button text="{i18n>btnSave}" 
+                        type="Emphasized" 
+                        icon="sap-icon://save" 
+                        press=".onSave" />
+                        
+                <Button text="{i18n>btnCancel}" 
+                        type="Transparent" 
+                        icon="sap-icon://sys-cancel" 
+                        press=".onCancel" />
             </OverflowToolbar>
         </footer>
     </Page>
