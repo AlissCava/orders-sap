@@ -1,7 +1,8 @@
 sap.ui.define([
     "orders/controller/BaseController", // Il nostro controller "padre" con le funzioni base
     "sap/m/MessageToast",               // Per i messaggi verdi a comparsa rapida (es. "Eliminato!")
-    "sap/m/MessageBox"                  // Per i messaggi di errore bloccanti
+    "sap/m/MessageBox",                 // Per i messaggi di errore bloccanti
+    "sap/ui/export/Spreadsheet"         // per esportazione exel
 ], function (BaseController, MessageToast, MessageBox) {
     "use strict";
 
@@ -103,6 +104,56 @@ sap.ui.define([
                     sap.ui.core.BusyIndicator.hide();
                     that._handleBackendError(oError); // Deleghiamo la gestione dell'errore
                 }
+            });
+        },
+
+        // ========================================================================
+        // EXPORT EXCEL (PUNTO 10)
+        // ========================================================================
+        onExportExcel: function () {
+            // 1. Diciamo al programma quale tabella vogliamo esportare (tramite il suo ID)
+            const oTable = this.byId("articlesTable"); 
+            const oRowBinding = oTable.getBinding("items"); // Prendiamo i dati agganciati alla tabella
+            const oBundle = this.getResourceBundle();
+
+            // 2. Definiamo come dovranno chiamarsi le colonne nel file Excel
+            // e a quali campi del database SAP corrispondono.
+            const aCols = [
+                { 
+                    label: oBundle.getText("colArticleCode"), 
+                    property: "CodArticolo", 
+                    type: "string" 
+                },
+                { 
+                    label: oBundle.getText("colArticleName"), 
+                    property: "NomeArticolo", 
+                    type: "string" 
+                },
+                { 
+                    label: oBundle.getText("colPrice"), 
+                    property: "Importo", 
+                    type: "number",
+                    scale: 2 // Mostra 2 decimali per i soldi
+                },
+                { 
+                    label: oBundle.getText("colAvailableQty"), 
+                    property: "QuantitaDisp", 
+                    type: "number" 
+                }
+            ];
+
+            // 3. Prepariamo le impostazioni del file
+            const oSettings = {
+                workbook: { columns: aCols },
+                dataSource: oRowBinding, // I dati da scrivere
+                fileName: "Export_Articoli.xlsx", // Il nome del file scaricato
+                worker: false
+            };
+
+            // 4. Avviamo la generazione del file e puliamo la memoria alla fine
+            const oSheet = new Spreadsheet(oSettings);
+            oSheet.build().finally(function() {
+                oSheet.destroy();
             });
         },
     });

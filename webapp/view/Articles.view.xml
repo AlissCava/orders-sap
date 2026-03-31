@@ -8,11 +8,12 @@
         <content>
             <Table id="articlesTable" items="{/ZES_articoliSet}">
             
-            <headerToolbar>
+           <headerToolbar>
                 <OverflowToolbar>
-                    <Title text="Articles List" />
+                    <Title text="{i18n>articlesPageTitle}" />
                     <ToolbarSpacer />
-                    <Button text="New Article" type="Emphasized" press=".onCreateArticle" />
+                    <Button text="{i18n>btnExportExcel}" icon="sap-icon://excel-attachment" press=".onExportExcel" />
+                    <Button text="{i18n>btnNewArticle}" type="Emphasized" press=".onCreateArticle" />
                 </OverflowToolbar>
             </headerToolbar>
 
