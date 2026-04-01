@@ -44,29 +44,6 @@
             </items>
         </Table>
         </content>
-
-        <dependents>
-            <Dialog id="addArticleDialog" title="{i18n>dialogCreateArticleTitle}">
-                <content>
-                    <VBox class="sapUiSmallMargin">
-                        <Label text="{i18n>lblArticleCode}" required="true" />
-                        <Input value="{articleModel>/newArticle/CodArticolo}" placeholder="{i18n>placeholderArticleCode}" />
-
-                        <Label text="{i18n>lblArticleName}" required="true" class="sapUiTinyMarginTop" />
-                        <Input value="{articleModel>/newArticle/NomeArticolo}" placeholder="{i18n>placeholderArticleName}" />
-
-                        <Label text="{i18n>lblAvailableQty}" class="sapUiTinyMarginTop" />
-                        <Input value="{articleModel>/newArticle/QuantitaDisp}" type="Number" />
-
-                        <Label text="{i18n>lblPrice}" class="sapUiTinyMarginTop" />
-                        <Input value="{articleModel>/newArticle/Importo}" type="Number" placeholder="{i18n>placeholderPrice}" />
-                    </VBox>
-                </content>
-                <buttons>
-                    <Button text="{i18n>btnSave}" type="Emphasized" press=".onSaveArticle" />
-                    <Button text="{i18n>btnCancel}" press=".onCloseArticleDialog" />
-                </buttons>
-            </Dialog>
-        </dependents>
-    </Page>
+        
+        </Page>
 </mvc:View>

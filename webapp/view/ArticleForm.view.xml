@@ -7,18 +7,18 @@
     
     <Page title="{viewModel>/viewTitle}" showNavButton="true" navButtonPress=".onNavBack">
         <content>
-            <f:SimpleForm editable="true" layout="ResponsiveGridLayout" title="Article Details">
+            <f:SimpleForm editable="true" layout="ResponsiveGridLayout" title="{i18n>articlesPageTitle}" class="myCustomCard">
                 <f:content>
-                    <Label text="Article Code" required="true" />
+                    <Label text="{i18n>lblArticleCode}" required="true" />
                     <Input value="{formModel>/CodArticolo}" editable="false" />
 
-                    <Label text="Article Name" required="true" />
+                    <Label text="{i18n>lblArticleName}" required="true" />
                     <Input value="{formModel>/NomeArticolo}" maxLength="50" />
 
-                    <Label text="Price (€)" />
+                    <Label text="{i18n>lblPrice}" />
                     <Input value="{formModel>/Importo}" type="Number" />
 
-                    <Label text="Available Quantity" />
+                    <Label text="{i18n>lblAvailableQty}" />
                     <Input value="{formModel>/QuantitaDisp}" type="Number" />
                 </f:content>
             </f:SimpleForm>
