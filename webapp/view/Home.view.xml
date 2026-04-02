@@ -42,12 +42,13 @@
                                 type: 'sap.ui.model.type.Date', 
                                 formatOptions: { pattern: 'dd/MM/yyyy' } 
                             }" />
-                            <ObjectNumber number="{ImportoTot}" unit="€" />
+                            
+                            <ObjectNumber number="{ path: 'ImportoTot', formatter: '.formatter.currencyValue' }" />
                             
                             <ObjectStatus 
                                 text="{StatoTxt}" 
-                                state="{= ${StatoTxt} === 'Completato' ? 'Success' : (${StatoTxt} === 'Annullato' ? 'Error' : 'Warning') }" 
-                                icon="{= ${StatoTxt} === 'Completato' ? 'sap-icon://sys-enter-2' : (${StatoTxt} === 'Annullato' ? 'sap-icon://error' : 'sap-icon://in-progress') }" />
+                                state="{ path: 'StatoTxt', formatter: '.formatter.statusState' }" 
+                                icon="{ path: 'StatoTxt', formatter: '.formatter.statusIcon' }" />
                         </cells>
                     </ColumnListItem>
                 </items>
@@ -60,7 +61,7 @@
                 </HBox>
                 <HBox alignItems="Center">
                     <Label text="{i18n>lblTotalValue}" design="Bold" class="sapUiSmallMarginEnd" />
-                    <ObjectNumber number="{summaryModel>/TotalValue}" unit="€" state="Success" />
+                    <ObjectNumber number="{ path: 'summaryModel>/TotalValue', formatter: '.formatter.currencyValue' }" state="Success" />
                 </HBox>
             </VBox>
         </content>

@@ -6,15 +6,16 @@
     xmlns:core="sap.ui.core"
     displayBlock="true">
 
-    <Page id="paorderFormPage" title="{viewModel>/viewTitle}" showNavButton="true" navButtonPress=".onNavBack">
+    <Page id="orderFormPage" title="{viewModel>/viewTitle}" showNavButton="true" navButtonPress=".onNavBack">
         <content>
             <VBox class="sapUiResponsiveMargin">
                 
                 <f:SimpleForm 
                     id="orderForm"
+                    class="myCustomCard"
                     editable="true"
                     layout="ColumnLayout"
-                    title="Dati Principali"
+                    title="{i18n>mainDataTitle}" 
                     columnsM="2" columnsL="2" columnsXL="2">
                     <f:content>
                         <Label text="{i18n>colOrderID}" />
@@ -39,28 +40,30 @@
 
             <Table id="orderItemsTable"
                    items="{formModel>/Articoli}" 
-                   class="sapUiResponsiveMargin"
+                   class="myCustomCard sapUiResponsiveMargin"
                    width="auto">
                 <headerToolbar>
                     <Toolbar>
                         <Title text="{i18n>orderItemsTitle}" level="H2"/>
                         <ToolbarSpacer />
-                        <Button icon="sap-icon://add" text="{i18n>btnNewArticle}" press=".onAddArticleToOrder" />
+                        <Button icon="sap-icon://add" text="{i18n>btnNewArticle}" type="Emphasized" press=".onAddArticleToOrder" />
                     </Toolbar>
                 </headerToolbar>
-              <columns>
+                <columns>
                     <Column width="20%"><Text text="{i18n>colArticleCode}"/></Column>
                     <Column width="40%"><Text text="{i18n>colArticleName}"/></Column>
-                    <Column width="20%" hAlign="Center"><Text text="{i18n>colQuantity}"/></Column>
-                    <Column width="20%" hAlign="Center"><Text text="{i18n>colPrice}"/></Column>
+                    
+                    <Column width="20%" hAlign="End"><Text text="{i18n>colQuantity}"/></Column>
+                    <Column width="20%" hAlign="End"><Text text="{i18n>colPrice}"/></Column>
                 </columns>
                 <items>
                     <ColumnListItem>
                         <cells>
                             <Input value="{formModel>CodArticolo}" />
                             <Input value="{formModel>NomeArticolo}" />
-                            <Input value="{formModel>QuantitaOrdine}" type="Number" textAlign="Center" />
-                            <Input value="{formModel>Importo}" type="Number" textAlign="Center" />
+                            
+                            <Input value="{formModel>QuantitaOrdine}" type="Number" textAlign="End" />
+                            <Input value="{formModel>Importo}" type="Number" textAlign="End" />
                         </cells>
                     </ColumnListItem>
                 </items>
@@ -70,8 +73,8 @@
         <footer>
             <OverflowToolbar>
                 <ToolbarSpacer/>
-                <Button text="{i18n>btnSave}" type="Emphasized" press=".onSave" />
-                <Button text="{i18n>btnCancel}" type="Transparent" press=".onCancel" />
+                <Button text="{i18n>btnSave}" type="Emphasized" icon="sap-icon://save" press=".onSave" />
+                <Button text="{i18n>btnCancel}" type="Transparent" icon="sap-icon://sys-cancel" press=".onCancel" />
             </OverflowToolbar>
         </footer>
     </Page>

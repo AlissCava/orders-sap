@@ -8,7 +8,7 @@
         <content>
             <Table id="articlesTable" items="{/ZES_articoliSet}" class="myCustomCard">
             
-           <headerToolbar>
+            <headerToolbar>
                 <OverflowToolbar>
                     <Title text="{i18n>articlesPageTitle}" />
                     <ToolbarSpacer />
@@ -37,13 +37,15 @@
                     <cells>
                         <Text text="{CodArticolo}" />
                         <Text text="{NomeArticolo}" />
-                        <Text text="{Importo} €" />
+                        
                         <Text text="{QuantitaDisp}" />
+                        
+                        <ObjectNumber number="{ path: 'Importo', formatter: '.formatter.currencyValue' }" />
                     </cells>
                 </ColumnListItem>
             </items>
         </Table>
         </content>
         
-        </Page>
+    </Page>
 </mvc:View>

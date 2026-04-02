@@ -16,10 +16,10 @@
                     <Input value="{formModel>/NomeArticolo}" maxLength="50" />
 
                     <Label text="{i18n>lblPrice}" />
-                    <Input value="{formModel>/Importo}" type="Number" />
+                    <Input value="{formModel>/Importo}" type="Number" description="€" textAlign="End" />
 
                     <Label text="{i18n>lblAvailableQty}" />
-                    <Input value="{formModel>/QuantitaDisp}" type="Number" />
+                    <Input value="{formModel>/QuantitaDisp}" type="Number" textAlign="End" />
                 </f:content>
             </f:SimpleForm>
         </content>

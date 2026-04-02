@@ -7,41 +7,45 @@
     <Page title="{i18n>orderDetailTitle}" showNavButton="true" navButtonPress=".onNavBack">
         <content>
             <ObjectHeader
+                class="myCustomCard sapUiResponsiveMargin"
                 title="{detailModel>/Cliente}"
-                number="{
-                    path: 'detailModel>/ImportoTot',
-                    type: 'sap.ui.model.type.Float',
-                    formatOptions: { minFractionDigits: 2, maxFractionDigits: 2 }
-                }"
-                numberUnit="€"
+                number="{ path: 'detailModel>/ImportoTot', formatter: '.formatter.currencyValue' }"
                 intro="{i18n>lblOrderNo} {detailModel>/NumOrdine}">
-                <attributes>
-                    <ObjectAttribute title="{i18n>lblStatus}" text="{detailModel>/StatoTxt}" />
-                </attributes>
+                
+                <statuses>
+                    <ObjectStatus 
+                        text="{detailModel>/StatoTxt}" 
+                        state="{ path: 'detailModel>/StatoTxt', formatter: '.formatter.statusState' }" 
+                        icon="{ path: 'detailModel>/StatoTxt', formatter: '.formatter.statusIcon' }" />
+                </statuses>
             </ObjectHeader>
 
             <Table id="lineItemsTable"
                    items="{detailModel>/Articoli}" 
-                   class="sapUiResponsiveMargin"
+                   class="myCustomCard sapUiResponsiveMargin"
                    width="auto">
+                   
                 <headerToolbar>
                     <Toolbar>
                         <Title text="{i18n>orderItemsTitle}" level="H2"/>
                     </Toolbar>
                 </headerToolbar>
+                
                 <columns>
                     <Column><Text text="{i18n>colArticleCode}"/></Column>
                     <Column><Text text="{i18n>colArticleName}"/></Column>
                     <Column hAlign="End"><Text text="{i18n>colQuantity}"/></Column>
                     <Column hAlign="End"><Text text="{i18n>colPrice}"/></Column>
                 </columns>
+                
                 <items>
                     <ColumnListItem>
                         <cells>
                             <Text text="{detailModel>CodArticolo}" />
                             <Text text="{detailModel>NomeArticolo}" />
                             <Text text="{detailModel>QuantitaOrdine}" />
-                            <ObjectNumber number="{detailModel>Importo}" unit="€" />
+                            
+                            <ObjectNumber number="{ path: 'detailModel>Importo', formatter: '.formatter.currencyValue' }" />
                         </cells>
                     </ColumnListItem>
                 </items>
