@@ -1,177 +1,133 @@
 sap.ui.define([
-    "orders/controller/BaseController",
-    "sap/ui/model/json/JSONModel",
-    "sap/m/MessageBox",
-    "sap/m/MessageToast"
+    "orders/controller/BaseController", // Carica il controller padre con le funzioni comuni
+    "sap/ui/model/json/JSONModel",      // Carica il costruttore per creare modelli dati locali
+    "sap/m/MessageBox",                 // Carica il modulo per mostrare finestre di errore bloccanti
+    "sap/m/MessageToast"                // Carica il modulo per piccoli messaggi di conferma a scomparsa
 ], function (BaseController, JSONModel, MessageBox, MessageToast) {
-    "use strict";
+    "use strict"; // Attiva il controllo rigoroso del codice JS
 
     return BaseController.extend("orders.controller.ArticleForm", {
 
         // ========================================================================
-        // 1. INIZIALIZZAZIONE E GESTIONE DELLA ROTTA (URL)
+        // 1. INIZIALIZZAZIONE E GESTIONE URL
         // ========================================================================
         onInit: function () {
-            // Colleghiamo la funzione _onRouteMatched all'evento di navigazione.
-            // Ogni volta che l'URL cambia e corrisponde a "RouteArticleForm" (es. /article/new o /article/10),
-            // SAPUI5 eseguirà automaticamente la funzione _onRouteMatched.
+            // Aggancia una funzione all'evento "patternMatched" della rotta 'RouteArticleForm'
+            // Ogni volta che l'URL cambia e corrisponde a questa rotta, viene eseguito _onRouteMatched
             this.getRouter().getRoute("RouteArticleForm").attachPatternMatched(this._onRouteMatched, this);
         },
 
         _onRouteMatched: function (oEvent) {
-            // Estraiamo il parametro "objectId" dall'URL. 
-            // Se abbiamo cliccato "Crea Nuovo", objectId sarà "new".
-            // Se abbiamo cliccato su un articolo esistente, objectId sarà il suo numero (es. "10").
+            // Recupera l'ID dell'oggetto passato nell'URL (es: "new" oppure "101")
             const sObjectId = oEvent.getParameter("arguments").objectId;
             
-            // Controlliamo se siamo in modalità "Creazione" o "Modifica"
+            // Verifica se stiamo creando un nuovo articolo (true se l'ID è "new")
             const bIsNew = (sObjectId === "new");
             
-            // Creiamo il "viewModel". Questo modello serve SOLO per controllare l'interfaccia grafica.
-            // Ci permette di cambiare il titolo della pagina e di bloccare/sbloccare i campi (es. il Codice Articolo)
+            // Crea un modello JSON locale per gestire lo stato della View (UI state)
             const oViewModel = new JSONModel({
-                isNew: bIsNew,
-                viewTitle: bIsNew ? "New Article" : "Edit Article " + sObjectId
+                isNew: bIsNew, // Indica alla View se siamo in modalità creazione o modifica
+                // Imposta il titolo della pagina recuperando la traduzione corretta dai file i18n
+                viewTitle: bIsNew ? this.getText("dialogCreateArticleTitle") : this.getText("dialogEditArticleTitle")
             });
+            
+            // Assegna il modello alla View con il nome "viewModel"
             this.setModel(oViewModel, "viewModel");
 
-            // In base alla modalità, decidiamo quale funzione chiamare per preparare i dati
+            // Se l'ID è "new" inizializza un form vuoto, altrimenti carica i dati dal database
             if (bIsNew) {
-                this._createEmptyForm(); // Prepara un form vuoto
+                this._createEmptyForm(); // Logica per nuovo articolo
             } else {
-                this._loadArticleData(sObjectId); // Scarica i dati dal server SAP
+                this._loadArticleData(sObjectId); // Logica per modifica articolo esistente
             }
         },
 
         // ========================================================================
-        // 2. PREPARAZIONE E CARICAMENTO DEI DATI (IL "formModel")
+        // 2. CARICAMENTO DATI
         // ========================================================================
         _createEmptyForm: function () {
-            // 1. Recuperiamo il modello OData principale (quello che parla col server SAP)
-            const oODataModel = this.getOwnerComponent().getModel();
-            
-            // Salviamo il riferimento al controller ('this') nella variabile 'that'.
-            // Ci serve perché dentro le funzioni 'success' ed 'error' il valore di 'this' cambia 
-            // e non punterebbe più al nostro controller originale.
-            const that = this;
+            const that = this; // Salva il riferimento al controller per le funzioni interne (callback)
+            sap.ui.core.BusyIndicator.show(0); // Mostra l'icona di caricamento e blocca l'interfaccia
 
-            // 2. Mostriamo la rotellina di caricamento per bloccare lo schermo
-            // mentre aspettiamo che il server ci risponda.
-            sap.ui.core.BusyIndicator.show(0);
+            // Interroga il servizio OData per trovare l'ultimo articolo inserito
+            this.odataRead("/ZES_articoliSet", {
+                "$orderby": "CodArticolo desc", // Ordina per codice in modo decrescente
+                "$top": 1                       // Prende solo il primo record (il più alto)
+            })
+            .then(function (oData) {
+                sap.ui.core.BusyIndicator.hide(); // Nasconde l'icona di caricamento
+                let iNextCode = 1; // Default se la tabella fosse vuota
 
-            // 3. Facciamo una chiamata di LETTURA (GET) alla tabella degli articoli.
-            // Invece di scaricarli tutti (che rallenterebbe tantissimo l'app), 
-            // diciamo al database SAP di fare il lavoro sporco per noi usando i parametri OData:
-            oODataModel.read("/ZES_articoliSet", {
-                urlParameters: {
-                    "$orderby": "CodArticolo desc", // Ordina i risultati dal Codice più grande al più piccolo
-                    "$top": 1                       // Di tutta la lista, mandaci SOLO il primo risultato
-                },
-                success: function (oData) {
-                    // Il server ha risposto! Nascondiamo subito la rotellina di caricamento
-                    sap.ui.core.BusyIndicator.hide();
-                    
-                    // Impostiamo un codice di partenza di default (nel caso il database fosse completamente vuoto)
-                    let iNextCode = 1; 
-
-                    // 4. Controlliamo se il server ci ha restituito almeno un record
-                    if (oData.results && oData.results.length > 0) {
-                        
-                        // Estraiamo il Codice Articolo dell'unico risultato che ci è arrivato (che è il più alto in assoluto).
-                        // Usiamo parseInt(..., 10) per forzare Javascript a trattarlo come un numero in base 10 
-                        // e non come una parola. Altrimenti, se sommassimo la stringa "15" + 1, il risultato sarebbe "151"!
-                        const iHighestCode = parseInt(oData.results[0].CodArticolo, 10);
-                        
-                        // Calcoliamo il progressivo: aggiungiamo matematicamente 1 al codice più alto
-                        iNextCode = iHighestCode + 1; 
-                    }
-
-                    // 5. Ora prepariamo l'oggetto JSON per il nostro form vuoto, 
-                    // iniettando il nuovo numero progressivo appena calcolato.
-                    const oEmptyArticle = {
-                        CodArticolo: iNextCode, // Il nostro campo bloccato ora ha il numero perfetto!
-                        NomeArticolo: "",
-                        Importo: 0,
-                        QuantitaDisp: 0
-                    };
-                    
-                    // 6. Creiamo il Modello JSON locale e lo assegniamo alla vista.
-                    // Facendo questo, i campi input sullo schermo si aggiorneranno istantaneamente.
-                    const oFormModel = new sap.ui.model.json.JSONModel(oEmptyArticle);
-                    that.setModel(oFormModel, "formModel");
-                },
-                error: function (oError) {
-                    // Se la chiamata fallisce (es. server offline o errore di rete), nascondiamo la rotellina
-                    sap.ui.core.BusyIndicator.hide();
-                    
-                    // Mostriamo il popup di errore estraendo il testo da SAP
-                    that._showError(oError); 
-                    
-                    // Riportiamo l'utente alla lista articoli, perché senza il codice progressivo 
-                    // non possiamo fargli creare un articolo valido.
-                    that.onNavBack(); 
+                // Se ci sono risultati, calcola il prossimo codice disponibile (+1)
+                if (oData.results && oData.results.length > 0) {
+                    const iHighestCode = parseInt(oData.results[0].CodArticolo, 10);
+                    iNextCode = iHighestCode + 1;
                 }
+
+                // Struttura l'oggetto iniziale per il nuovo articolo
+                const oEmptyArticle = {
+                    CodArticolo: iNextCode,
+                    NomeArticolo: "",
+                    Importo: 0,
+                    QuantitaDisp: 0
+                };
+                
+                // Crea e assegna il modello "formModel" alla View per popolare i campi di input
+                that.setModel(new JSONModel(oEmptyArticle), "formModel");
+            })
+            .catch(function (oError) {
+                sap.ui.core.BusyIndicator.hide(); // Nasconde il caricamento in caso di errore
+                that.handleBackendError(oError); // Gestisce l'errore tramite funzione centralizzata
+                that.onNavBack(); // Riporta l'utente alla pagina precedente
             });
         },
 
         _loadArticleData: function (sArticleId) {
-            // Recuperiamo il modello OData principale (quello che parla con il server SAP)
-            const oODataModel = this.getOwnerComponent().getModel();
-            const that = this; // Salviamo il riferimento al controller per usarlo dentro le funzioni success/error
-
-            // Mostriamo la rotellina di caricamento per avvisare l'utente che stiamo contattando il server
-            sap.ui.core.BusyIndicator.show(0);
-
-            // Costruiamo il percorso esatto per leggere un singolo articolo. Esempio: /ZES_articoliSet(10)
+            const that = this; // Salva il riferimento al controller
+            sap.ui.core.BusyIndicator.show(0); // Blocca l'interfaccia
+            
+            // Costruisce il percorso (path) OData per leggere il singolo record tramite ID
             const sPath = "/ZES_articoliSet(" + sArticleId + ")";
 
-            // Effettuiamo la chiamata di LETTURA (GET) al server SAP
-            oODataModel.read(sPath, {
-                success: function (oData) {
-                    sap.ui.core.BusyIndicator.hide(); // Nascondiamo la rotellina
-                    
-                    // Prendiamo i dati che SAP ci ha restituito e li mettiamo nel nostro "formModel".
-                    // Così facendo, i campi dell'interfaccia XML si popoleranno magicamente da soli.
-                    const oFormModel = new JSONModel(oData);
-                    that.setModel(oFormModel, "formModel");
-                },
-                error: function () {
-                    sap.ui.core.BusyIndicator.hide();
-                    MessageBox.error("Article not found or server rejected the request.");
-                    that.onNavBack(); // Se c'è un errore (es. articolo inesistente), torniamo indietro
-                }
+            // Esegue la lettura dei dati dal server SAP
+            this.odataRead(sPath)
+            .then(function (oData) {
+                sap.ui.core.BusyIndicator.hide(); // Sblocca l'interfaccia
+                // Carica i dati ricevuti nel modello "formModel" per mostrarli a video
+                that.setModel(new JSONModel(oData), "formModel");
+            })
+            .catch(function (oError) {
+                sap.ui.core.BusyIndicator.hide(); // Sblocca l'interfaccia
+                that.handleBackendError(oError); // Mostra l'errore del server
+                that.onNavBack(); // Torna indietro
             });
         },
 
         // ========================================================================
-        // 3. SALVATAGGIO DEI DATI (CREAZIONE O MODIFICA)
+        // 3. SALVATAGGIO
         // ========================================================================
         onSave: function () {
-            // Recuperiamo i modelli che ci servono
-            const oFormModel = this.getModel("formModel");
-            const oViewModel = this.getModel("viewModel");
-            const oODataModel = this.getOwnerComponent().getModel();
-            const that = this;
+            const oFormModel = this.getModel("formModel"); // Recupera i dati inseriti dall'utente
+            const oViewModel = this.getModel("viewModel"); // Recupera lo stato della view (new/edit)
+            const that = this; // Riferimento al controller
 
-            // Estraiamo i dati correnti digitati dall'utente e lo stato (Nuovo o Modifica)
-            const oData = oFormModel.getData();
-            const bIsNew = oViewModel.getProperty("/isNew");
+            const oData = oFormModel.getData(); // Estrae l'oggetto dati dal modello
+            const bIsNew = oViewModel.getProperty("/isNew"); // Verifica se siamo in creazione
 
-            // --- FASE 1: VALIDAZIONE ---
-            // Controlliamo che l'utente non abbia lasciato vuoti i campi obbligatori
+            // --- VALIDAZIONE ---
+            // Controlla che il nome dell'articolo non sia vuoto
             if (!oData.NomeArticolo || oData.NomeArticolo.trim() === "") {
-                MessageBox.error("Article name is mandatory.");
-                return; // Blocchiamo l'esecuzione, non inviamo nulla a SAP
+                MessageBox.error(this.getText("msgErrorFieldsEmpty"));
+                return; // Interrompe l'esecuzione se manca il nome
             }
+            // Se è un nuovo articolo, controlla che il codice sia presente
             if (bIsNew && (!oData.CodArticolo || oData.CodArticolo === "")) {
-                MessageBox.error("Article code is mandatory for new articles.");
+                MessageBox.error(this.getText("msgErrorFieldsEmpty"));
                 return;
             }
 
-            // --- FASE 2: PREPARAZIONE DEL PAYLOAD ---
-            // Il "Payload" è il pacchetto di dati che spediamo a SAP.
-            // SAP è molto rigido sui tipi di dato (es. vuole un numero per il prezzo, non una stringa di testo).
-            // Quindi convertiamo esplicitamente i valori (es. parseInt per gli interi, parseFloat per i decimali).
+            // --- PREPARAZIONE DATI (PAYLOAD) ---
+            // Converte i valori nei formati corretti per il database SAP (interi e decimali)
             const oPayload = {
                 CodArticolo: parseInt(oData.CodArticolo, 10),
                 NomeArticolo: oData.NomeArticolo,
@@ -179,70 +135,41 @@ sap.ui.define([
                 QuantitaDisp: parseInt(oData.QuantitaDisp, 10) || 0
             };
 
-            sap.ui.core.BusyIndicator.show(0);
+            sap.ui.core.BusyIndicator.show(0); // Inizia l'animazione di caricamento
 
-            // --- FASE 3: INVIO A SAP ---
             if (bIsNew) {
-                // SE È NUOVO: Usiamo oODataModel.create (che corrisponde a una richiesta HTTP POST)
-                oODataModel.create("/ZES_articoliSet", oPayload, {
-                    success: function () {
-                        sap.ui.core.BusyIndicator.hide();
-                        MessageToast.show("Article successfully created!");
-                        
-                        // Diciamo al modello globale di ricaricarsi. Così quando torniamo alla lista,
-                        // vedremo apparire immediatamente il nostro nuovo articolo.
-                        oODataModel.refresh(true); 
-                        
-                        that.onNavBack(); // Torniamo alla pagina precedente
-                    },
-                    error: function (oError) {
-                        sap.ui.core.BusyIndicator.hide();
-                        that._showError(oError); // Usiamo la nostra funzione helper per leggere l'errore
-                    }
+                // Esegue una chiamata POST (creazione) al servizio OData
+                this.odataCreate("/ZES_articoliSet", oPayload)
+                .then(function () {
+                    sap.ui.core.BusyIndicator.hide(); // Fine caricamento
+                    MessageToast.show(that.getText("msgArticleCreated")); // Messaggio di successo
+                    that.getModel().refresh(true); // Forza l'aggiornamento della lista principale
+                    that.onNavBack(); // Torna alla lista
+                })
+                .catch(function (oError) {
+                    sap.ui.core.BusyIndicator.hide();
+                    that.handleBackendError(oError); // Gestione errore SAP
                 });
             } else {
-                // SE È UNA MODIFICA: Usiamo oODataModel.update (che corrisponde a una richiesta HTTP PUT)
-                // Dobbiamo dire a SAP esattamente QUALE articolo stiamo modificando indicando l'ID nel percorso
+                // Esegue una chiamata PUT/MERGE (aggiornamento) al servizio OData
                 const sPath = "/ZES_articoliSet(" + oPayload.CodArticolo + ")";
-                
-                oODataModel.update(sPath, oPayload, {
-                    success: function () {
-                        sap.ui.core.BusyIndicator.hide();
-                        MessageToast.show("Article successfully updated!");
-                        oODataModel.refresh(true); 
-                        that.onNavBack();
-                    },
-                    error: function (oError) {
-                        sap.ui.core.BusyIndicator.hide();
-                        that._showError(oError);
-                    }
+                this.odataUpdate(sPath, oPayload)
+                .then(function () {
+                    sap.ui.core.BusyIndicator.hide();
+                    MessageToast.show(that.getText("msgArticleUpdated")); // Conferma modifica
+                    that.getModel().refresh(true); // Ricarica i dati
+                    that.onNavBack(); // Torna alla lista
+                })
+                .catch(function (oError) {
+                    sap.ui.core.BusyIndicator.hide();
+                    that.handleBackendError(oError);
                 });
             }
         },
 
-        // ========================================================================
-        // 4. FUNZIONI DI SUPPORTO E NAVIGAZIONE
-        // ========================================================================
-        
-        // Questa funzione serve a "scavare" dentro la risposta di errore di SAP.
-        // Spesso gli errori di SAP sono oggetti JSON complessi, noi vogliamo estrarre solo
-        // la frase di testo leggibile (es. "Quantità non valida") per mostrarla all'utente.
-        _showError: function(oError) {
-            let sMsg = "Error during save.";
-            try {
-                const oErrorObj = JSON.parse(oError.responseText);
-                if (oErrorObj.error && oErrorObj.error.message) {
-                    sMsg = oErrorObj.error.message.value;
-                }
-            } catch (e) {
-                // Se non riusciamo a leggere il JSON, teniamo il messaggio generico
-            }
-            MessageBox.error(sMsg);
-        },
-
+        // Gestore per il tasto Annulla
         onCancel: function () {
-            // Se l'utente clicca Annulla, torniamo semplicemente indietro senza salvare nulla
-            this.onNavBack();
+            this.onNavBack(); // Chiude la pagina senza salvare
         }
     });
-});     
+});

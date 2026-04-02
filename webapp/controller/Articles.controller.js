@@ -1,160 +1,122 @@
 sap.ui.define([
-    "orders/controller/BaseController", // Il nostro controller "padre" con le funzioni base
-    "sap/m/MessageToast",               // Per i messaggi verdi a comparsa rapida (es. "Eliminato!")
-    "sap/m/MessageBox",                 // Per i messaggi di errore bloccanti
-    "sap/ui/export/Spreadsheet"         // per esportazione exel
-], function (BaseController, MessageToast, MessageBox) {
+    "orders/controller/BaseController", 
+    "sap/m/MessageToast",               
+    "sap/m/MessageBox",                 
+    "sap/ui/export/Spreadsheet"         // Importa la libreria SAP standard per generare file Excel
+], function (BaseController, MessageToast, MessageBox, Spreadsheet) { 
     "use strict";
 
     return BaseController.extend("orders.controller.Articles", {
 
-        // ========================================================================
-        // 1. INIZIALIZZAZIONE
-        // ========================================================================
         onInit: function () {
-            // In questa nuova architettura a pagina intera, la lista degli articoli
-            // non ha più bisogno di un modello locale per i popup.
-            // Si occupa solo di leggere i dati dal server (lo fa già l'XML da solo)
-            // e di smistare il traffico verso il nuovo Form.
+            // In questo caso l'onInit è vuoto perché il caricamento dati è gestito dal binding nell'XML
         },
 
         // ========================================================================
-        // 2. NAVIGAZIONE (IL "VIGILE URBANO")
+        // NAVIGAZIONE
         // ========================================================================
-
-        // Questa funzione scatta quando premi il bottone "Nuovo Articolo" in alto
+        
+        // Funzione chiamata al clic sul tasto "Aggiungi" o "Crea"
         onCreateArticle: function () {
-            // Usiamo il Router di SAPUI5 per cambiare pagina.
-            // Diciamo: "Portami alla pagina RouteArticleForm e passagli il parametro 'new'".
-            // Il controller di destinazione leggerà 'new' e capirà che deve creare un form vuoto.
+            // Naviga alla rotta del form passando "new" come ID per indicare un nuovo inserimento
             this.getRouter().navTo("RouteArticleForm", {
                 objectId: "new"
             });
         },
 
-        // Questa funzione scatta quando CLICCHI SU UNA RIGA della tabella
+        // Funzione chiamata quando l'utente clicca su una riga della tabella
         onArticlePress: function (oEvent) {
-            // 1. Capiamo esattamente quale riga della tabella hai cliccato
+            // Ottiene l'oggetto (la riga) che ha scatenato l'evento
             const oItem = oEvent.getSource();
-            
-            // 2. Estraiamo il "Codice Articolo" specifico di quella riga (es. "10")
+            // Recupera dal contesto del binding il valore della proprietà "CodArticolo"
             const sArticleCode = oItem.getBindingContext().getProperty("CodArticolo");
-            
-            // 3. Diciamo al Router: "Portami alla pagina RouteArticleForm, 
-            // ma passagli il codice articolo invece di 'new'".
-            // Il controller di destinazione leggerà il numero e scaricherà i dati da SAP.
+            // Naviga al form passando il codice dell'articolo selezionato per la modifica
             this.getRouter().navTo("RouteArticleForm", {
                 objectId: sArticleCode
             });
         },
 
         // ========================================================================
-        // 3. ELIMINAZIONE ARTICOLO (DELETE ODATA)
+        // ELIMINAZIONE
         // ========================================================================
-
-        // Questa funzione scatta quando l'utente preme il cestino rosso o il tasto "Elimina"
+        
+        // Gestisce l'eliminazione di un articolo
         onDeleteArticle: function (oEvent) {
-            // 1. Identifichiamo il percorso esatto dell'articolo sul server
-            // oContext.getPath() ci darà una stringa tipo: "/ZES_articoliSet(10)"
-            // Usa "getParameter('listItem')" se il tasto elimina è gestito dalla lista,
-            // oppure "getSource()" se il tasto è dentro la riga stessa.
             let oContext;
+            
+            // Verifica la provenienza dell'evento (pressione riga o pulsante specifico)
             if (oEvent.getParameter("listItem")) {
+                // Se l'evento è "delete" della lista, prende l'item dai parametri
                 oContext = oEvent.getParameter("listItem").getBindingContext();
             } else {
+                // Altrimenti prende il contesto direttamente dal pulsante cliccato
                 oContext = oEvent.getSource().getBindingContext();
             }
             
+            // Ottiene il path OData relativo all'articolo (es: /ZES_articoliSet(10))
             const sPath = oContext.getPath(); 
-            const that = this; // Salviamo il controller in memoria
+            const that = this; // Riferimento al controller per le callback
 
-            // 2. Chiediamo conferma all'utente (non si sa mai, magari ha cliccato per sbaglio!)
-            MessageBox.confirm("Sei sicura di voler eliminare questo articolo?", {
-                title: "Conferma Eliminazione",
-                actions: [MessageBox.Action.YES, MessageBox.Action.NO],
+            // Mostra un popup di conferma prima di procedere
+            MessageBox.confirm(this.getText("msgDeleteConfirm"), {
+                title: this.getText("appTitle"),
+                actions: [MessageBox.Action.YES, MessageBox.Action.NO], // Pulsanti Sì/No
                 onClose: function (sAction) {
+                    // Se l'utente conferma cliccando su "YES"
                     if (sAction === MessageBox.Action.YES) {
-                        // Se l'utente dice SI, procediamo con l'esecuzione!
-                        that._deleteArticleFromBackend(sPath);
+                        sap.ui.core.BusyIndicator.show(0); // Blocca l'interfaccia
+
+                        // Chiama il metodo DELETE definito nel BaseController
+                        that.odataDelete(sPath)
+                        .then(function () {
+                            sap.ui.core.BusyIndicator.hide(); // Sblocca l'interfaccia
+                            // Mostra un messaggio di avvenuta eliminazione
+                            MessageToast.show(that.getText("msgArticleDeleted"));
+                        })
+                        .catch(function (oError) {
+                            sap.ui.core.BusyIndicator.hide();
+                            // In caso di errore (es: vincoli a DB), lo gestisce in modo centralizzato
+                            that.handleBackendError(oError); 
+                        });
                     }
                 }
             });
         },
 
         // ========================================================================
-        // 4. CHIAMATA AL SERVER (IL LAVORO SPORCO)
+        // EXPORT EXCEL
         // ========================================================================
-
-        // Funzione interna che bussa al server SAP e chiede la cancellazione
-        _deleteArticleFromBackend: function (sPath) {
-            // Prendiamo il modello OData globale (quello che parla col backend)
-            const oODataModel = this.getOwnerComponent().getModel(); 
-            const that = this;
-
-            // Mostriamo la rotellina di caricamento
-            sap.ui.core.BusyIndicator.show(0); 
-
-            // Chiamata HTTP DELETE verso SAP
-            oODataModel.remove(sPath, {
-                success: function () {
-                    MessageToast.show("Articolo eliminato con successo!");
-                    // Non serve ricaricare la pagina, la riga sparirà da sola dalla tabella!
-                },
-                error: function (oError) {
-                    sap.ui.core.BusyIndicator.hide();
-                    that._handleBackendError(oError); // Deleghiamo la gestione dell'errore
-                }
-            });
-        },
-
-        // ========================================================================
-        // EXPORT EXCEL (PUNTO 10)
-        // ========================================================================
+        
+        // Genera un file Excel basato sui dati attualmente visibili in tabella
         onExportExcel: function () {
-            // 1. Diciamo al programma quale tabella vogliamo esportare (tramite il suo ID)
+            // Recupera l'istanza della tabella tramite il suo ID
             const oTable = this.byId("articlesTable"); 
-            const oRowBinding = oTable.getBinding("items"); // Prendiamo i dati agganciati alla tabella
-            const oBundle = this.getResourceBundle();
+            // Ottiene il binding degli elementi (i dati caricati dal server)
+            const oRowBinding = oTable.getBinding("items"); 
+            const oBundle = this.getResourceBundle(); // Carica le traduzioni
 
-            // 2. Definiamo come dovranno chiamarsi le colonne nel file Excel
-            // e a quali campi del database SAP corrispondono.
+            // Definisce la struttura delle colonne del file Excel
             const aCols = [
-                { 
-                    label: oBundle.getText("colArticleCode"), 
-                    property: "CodArticolo", 
-                    type: "string" 
-                },
-                { 
-                    label: oBundle.getText("colArticleName"), 
-                    property: "NomeArticolo", 
-                    type: "string" 
-                },
-                { 
-                    label: oBundle.getText("colPrice"), 
-                    property: "Importo", 
-                    type: "number",
-                    scale: 2 // Mostra 2 decimali per i soldi
-                },
-                { 
-                    label: oBundle.getText("colAvailableQty"), 
-                    property: "QuantitaDisp", 
-                    type: "number" 
-                }
+                { label: oBundle.getText("colArticleCode"), property: "CodArticolo", type: "string" },
+                { label: oBundle.getText("colArticleName"), property: "NomeArticolo", type: "string" },
+                { label: oBundle.getText("colPrice"), property: "Importo", type: "number", scale: 2 },
+                { label: oBundle.getText("colAvailableQty"), property: "QuantitaDisp", type: "number" }
             ];
 
-            // 3. Prepariamo le impostazioni del file
+            // Configurazione del worker e dei parametri di esportazione
             const oSettings = {
-                workbook: { columns: aCols },
-                dataSource: oRowBinding, // I dati da scrivere
-                fileName: "Export_Articoli.xlsx", // Il nome del file scaricato
-                worker: false
+                workbook: { columns: aCols }, // Assegna le colonne definite sopra
+                dataSource: oRowBinding,      // Fonte dei dati: il binding della tabella
+                fileName: "Export_Articoli.xlsx", // Nome del file in uscita
+                worker: false                 // Disabilita i web worker (più semplice per il debug)
             };
 
-            // 4. Avviamo la generazione del file e puliamo la memoria alla fine
+            // Crea un nuovo oggetto Spreadsheet con le impostazioni definite
             const oSheet = new Spreadsheet(oSettings);
+            // Avvia la generazione del file e assicura la pulizia della memoria alla fine
             oSheet.build().finally(function() {
-                oSheet.destroy();
+                oSheet.destroy(); // Distrugge l'oggetto per liberare risorse RAM
             });
-        },
+        }
     });
 });
