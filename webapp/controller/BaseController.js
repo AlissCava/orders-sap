@@ -2,7 +2,8 @@ sap.ui.define([
   "sap/ui/core/mvc/Controller",
   "sap/ui/core/routing/History",
   "sap/ui/model/json/JSONModel",
-  "sap/m/MessageBox" // Aggiunto MessageBox per poter mostrare i popup di errore centralizzati
+  "sap/m/MessageBox", // Aggiunto MessageBox per poter mostrare i popup di errore centralizzati
+  "orders/model/formatter"
 ], function (Controller, History, JSONModel, MessageBox) {
   "use strict";
 
