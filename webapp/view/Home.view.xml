@@ -18,7 +18,16 @@
                 <headerToolbar>
                     <OverflowToolbar>
                         <SearchField width="300px" placeholder="{i18n>searchPlaceholder}" liveChange=".onSearch" />
+                        
+                        <Select id="statusFilter" change=".onSearch" forceSelection="false" width="200px">
+                            <core:Item key="" text="Tutti gli Stati" />
+                            <core:Item key="Nuovo" text="Nuovo" />
+                            <core:Item key="In Lavorazione" text="In Lavorazione" />
+                            <core:Item key="Completato" text="Completato" />
+                            <core:Item key="Cancellato" text="Cancellato" />
+                        </Select>
                         <ToolbarSpacer />
+
                         <Button icon="sap-icon://excel-attachment" text="{i18n>btnExportExcel}" press=".onExport" />
                         <Button icon="sap-icon://add" text="{i18n>btnNewOrder}" type="Emphasized" press=".onNavToCreateOrder" />
                     </OverflowToolbar>

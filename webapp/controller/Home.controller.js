@@ -123,20 +123,31 @@ sap.ui.define([
         },
 
         // ========================================================================
-        // RICERCA
+        // RICERCA FILTRATA ODATA (TESTO + STATO)
         // ========================================================================
         onSearch: function (oEvent) {
-            // Recupera il valore inserito nella SearchField
-            const sQuery = oEvent.getParameter("newValue");
-            const aFilters = []; // Array per i filtri OData
+            // Prepariamo un cesto vuoto dove mettere i filtri
+            const aFilters = [];
 
-            // Se la query non è vuota, crea un nuovo oggetto Filter
-            if (sQuery && sQuery.length > 0) {
-                // Filtra per la colonna "Cliente" usando l'operatore "Contiene"
-                aFilters.push(new Filter("Cliente", FilterOperator.Contains, sQuery));
+            // 1. Leggiamo il valore della barra di ricerca (Nome Cliente)
+            // Siccome questa funzione scatta sia quando scrivi sia quando cambi la tendina,
+            // non possiamo usare oEvent.getParameter("newValue"), ma andiamo a leggere direttamente il campo.
+            const sSearchQuery = this.byId("ordersTable").getHeaderToolbar().getContent()[0].getValue();
+
+            // 2. Leggiamo il valore selezionato nella tendina dello stato
+            const sStatusQuery = this.byId("statusFilter").getSelectedKey();
+
+            // Se c'è testo nel nome cliente, aggiungiamo il filtro Contains
+            if (sSearchQuery && sSearchQuery.length > 0) {
+                aFilters.push(new Filter("Cliente", FilterOperator.Contains, sSearchQuery));
             }
 
-            // Applica l'array di filtri al binding degli elementi della tabella
+            // Se è stato scelto uno stato specifico (diverso da "Tutti gli Stati" che ha key vuota)
+            if (sStatusQuery && sStatusQuery !== "") {
+                aFilters.push(new Filter("StatoTxt", FilterOperator.Equals, sStatusQuery));
+            }
+
+            // Diciamo alla tabella di applicare tutti i filtri raccolti!
             this.byId("ordersTable").getBinding("items").filter(aFilters);
         },
 
