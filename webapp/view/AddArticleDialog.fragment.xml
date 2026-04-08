@@ -1,0 +1,32 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:f="sap.ui.layout.form">
+    
+    <Dialog title="{i18n>btnNewArticle}" contentWidth="400px" class="myCustomCard">
+        <content>
+            <f:SimpleForm editable="true" layout="ResponsiveGridLayout">
+                <f:content>
+                    <Label text="{i18n>colArticleCode}" required="true" />
+                    <Input id="inputDialogCode" type="Number" />
+
+                    <Label text="{i18n>colQuantity}" required="true" />
+                    <Input id="inputDialogQty" type="Number" value="1" textAlign="End" />
+                    
+                    <Label text="{i18n>colArticleName}" />
+                    <Input id="inputDialogName" />
+                    
+                    <Label text="{i18n>colPrice}" />
+                    <Input id="inputDialogPrice" type="Number" description="€" textAlign="End" />
+                </f:content>
+            </f:SimpleForm>
+        </content>
+        
+        <beginButton>
+            <Button text="{i18n>btnSave}" type="Emphasized" press=".onConfirmAddArticle" />
+        </beginButton>
+        <endButton>
+            <Button text="{i18n>btnCancel}" type="Transparent" press=".onCancelAddArticle" />
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>   

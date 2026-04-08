@@ -1,173 +1,276 @@
+/**
+ * Controller per la gestione del Form Ordini (Creazione e Modifica).
+ * Gestisce la testata dell'ordine e una tabella di articoli in memoria locale
+ * prima di inviare tutto al backend SAP tramite Deep Insert.
+ */
 sap.ui.define([
-    "orders/controller/BaseController",
-    "sap/ui/model/json/JSONModel",
-    "sap/m/MessageBox",
-    "sap/m/MessageToast",
-    "sap/ui/model/Filter",
-    "sap/ui/model/FilterOperator"
-], function (BaseController, JSONModel, MessageBox, MessageToast, Filter, FilterOperator) {
+    "orders/controller/BaseController", // Controller genitore con funzioni utility
+    "sap/ui/model/json/JSONModel",      // Modelli client-side per la UI
+    "sap/m/MessageBox",                 // Popup per messaggi critici
+    "sap/m/MessageToast",               // Messaggio a scomparsa per conferme
+    "sap/ui/model/Filter",              // Costruttore per i filtri OData
+    "sap/ui/model/FilterOperator",      // Operatori logici (EQ, NE, etc.)
+    "sap/ui/core/Fragment"              // Caricamento asincrono di componenti XML (Dialog)
+], function (BaseController, JSONModel, MessageBox, MessageToast, Filter, FilterOperator, Fragment) {
     "use strict";
 
     return BaseController.extend("orders.controller.OrderForm", {
 
-        // ------------------------------------------------------------------------
-        // 1. INIZIALIZZAZIONE E ROUTING
-        // ------------------------------------------------------------------------
+        // ========================================================================
+        // 1. CICLO DI VITA E NAVIGAZIONE
+        // ========================================================================
+
+        /**
+         * Metodo eseguito una sola volta all'istanza del controller.
+         */
         onInit: function () {
-            // Quando scatta "RouteOrderForm", chiama la funzione _onRouteMatched
+            // Ottiene il router e si registra all'evento "patternMatched" della route specifica.
+            // Questo permette di eseguire logica ogni volta che l'utente atterra su questa pagina.
             this.getRouter().getRoute("RouteOrderForm").attachPatternMatched(this._onRouteMatched, this);
         },
 
+        /**
+         * Gestore dell'evento di navigazione verso questa vista.
+         * @param {sap.ui.base.Event} oEvent L'evento di routing che contiene i parametri dell'URL.
+         */
         _onRouteMatched: function (oEvent) {
-            // Leggiamo l'ID passato nell'URL (es: "new" oppure "4")
+            // Estrae l'ID dell'ordine (o la stringa "new") dai parametri definiti nel manifest.json
             const sObjectId = oEvent.getParameter("arguments").objectId;
-
-            // Creiamo un modello (viewModel) per controllare l'interfaccia (es. Titolo pagina)
+            // Verifica se siamo in modalità creazione o visualizzazione/modifica
             const bIsNew = (sObjectId === "new");
+            
+            // Crea un modello JSON per gestire lo stato della UI (titoli, visibilità, etc.)
             const oViewModel = new JSONModel({
                 isNew: bIsNew,
-                viewTitle: bIsNew ? "New Order" : "Edit Order " + sObjectId
+                // Calcola il titolo della pagina: usa i18n per supportare più lingue
+                viewTitle: bIsNew ? this.getText("btnNewOrder") : this.getText("lblOrderNo") + " " + sObjectId
             });
+            // Assegna il modello alla vista con il nome "viewModel"
             this.setModel(oViewModel, "viewModel");
 
-            // Decidiamo cosa fare con i dati in base all'ID
             if (bIsNew) {
-                this._createEmptyForm(); // Modalità CREAZIONE
+                // Se è un nuovo ordine, inizializza un oggetto vuoto nel modello locale
+                this._createEmptyForm(); 
             } else {
-                this._loadOrderData(sObjectId); // Modalità MODIFICA
+                // Se è un ordine esistente, chiama il backend per recuperare i dati
+                this._loadOrderData(sObjectId); 
             }
         },
 
-        // ------------------------------------------------------------------------
-        // 2. GESTIONE DATI (NUOVO vs ESISTENTE)
-        // ------------------------------------------------------------------------
+        // ========================================================================
+        // 2. LOGICA DATI E COMUNICAZIONE ODATA (BACKEND)
+        // ========================================================================
+
+        /**
+         * Crea una struttura dati vuota per il modello del form.
+         */
         _createEmptyForm: function () {
-            // Prepariamo un "guscio vuoto" per il nuovo ordine
-            // I nomi delle proprietà restano quelli del backend SAP per non rompere i collegamenti XML
             const oEmptyOrder = {
-                NumOrdine: "Auto-generated", 
+                NumOrdine: "Auto-generated", // Testo segnaposto prima del salvataggio
                 Cliente: "",
-                StatoTxt: "New",
+                StatoTxt: "Nuovo", 
                 ImportoTot: 0,
-                Articoli: [] // Tabella articoli inizialmente vuota
+                Articoli: [] // Inizialmente l'array degli articoli è vuoto
             };
 
             const oFormModel = new JSONModel(oEmptyOrder);
             this.setModel(oFormModel, "formModel");
         },
 
+        /**
+         * Recupera i dati dal server SAP eseguendo due letture sequenziali.
+         * @param {string} sOrderId ID dell'ordine da caricare.
+         */
         _loadOrderData: function (sOrderId) {
-            const oODataModel = this.getOwnerComponent().getModel(); 
-            const that = this;
-
-            sap.ui.core.BusyIndicator.show(0);
-
-            // Per sicurezza, trasformiamo l'ID in numero puro per i filtri
+            const oODataModel = this.getOwnerComponent().getModel(); // Ottiene il modello OData principale
+            const that = this; // Salva il riferimento al controller per le callback
+            
+            sap.ui.core.BusyIndicator.show(0); // Blocca l'interfaccia con un caricamento
             const iOrderId = parseInt(sOrderId, 10);
 
-            // 1. PRIMA CHIAMATA: Leggiamo la testata usando un FILTRO (per aggirare il blocco "addressable=false")
+            // Prima Lettura: Recupero i dati di Testata (Cliente, Stato, etc.)
             oODataModel.read("/ZES_lista_ordiniSet", {
                 filters: [new Filter("NumOrdine", FilterOperator.EQ, iOrderId)],
                 success: function (oHeaderResult) {
-                    
-                    // Siccome abbiamo chiesto una "lista" filtrata, il risultato è un array.
-                    // Controlliamo che abbia trovato almeno un ordine e prendiamo il primo (e unico)
+                    // Controllo di sicurezza se l'array dei risultati è vuoto
                     if (!oHeaderResult.results || oHeaderResult.results.length === 0) {
                         sap.ui.core.BusyIndicator.hide();
-                        MessageBox.error("Order not found on server.");
+                        MessageBox.error(that.getText("msgErrorBackend"));
+                        that.onNavBack();
                         return;
                     }
 
+                    // Prepara l'oggetto finale partendo dai dati della testata
                     const oHeaderData = oHeaderResult.results[0];
-
-                    // Trasformiamo i dati della testata per il nostro form
                     const oOrderData = {
                         NumOrdine: oHeaderData.NumOrdine,
                         Cliente: oHeaderData.Cliente,
                         StatoTxt: oHeaderData.StatoTxt,
                         ImportoTot: oHeaderData.ImportoTot,
-                        Articoli: [] // Inizialmente vuoto
+                        Articoli: [] // Sarà popolato dalla seconda chiamata
                     };
 
-                    // 2. SECONDA CHIAMATA: Leggiamo gli Articoli di questo ordine con un altro filtro
+                    // Seconda Lettura: Recupero i Dettagli (Articoli) associati all'ordine
                     oODataModel.read("/ZES_dettagli_ordiniSet", {
                         filters: [new Filter("NumOrdine", FilterOperator.EQ, iOrderId)],
                         success: function (oItemsData) {
-                            sap.ui.core.BusyIndicator.hide();
-
-                            // Aggiungiamo gli articoli recuperati ai dati dell'ordine
+                            sap.ui.core.BusyIndicator.hide(); // Operazione conclusa
                             oOrderData.Articoli = oItemsData.results || [];
-
-                            // Infine, passiamo tutto alla View
-                            const oFormModel = new JSONModel(oOrderData);
-                            that.setModel(oFormModel, "formModel");
+                            // Carica tutti i dati (Testata + Articoli) nel modello JSON dedicato al form
+                            that.setModel(new JSONModel(oOrderData), "formModel");
                         },
                         error: function () {
                             sap.ui.core.BusyIndicator.hide();
-                            MessageBox.warning("Order header loaded, but failed to load items.");
-                            
-                            // Mostriamo comunque la testata anche se gli articoli falliscono
-                            const oFormModel = new JSONModel(oOrderData);
-                            that.setModel(oFormModel, "formModel");
+                            MessageBox.warning("Articoli non caricati.");
+                            // Carica comunque la testata anche se i dettagli falliscono
+                            that.setModel(new JSONModel(oOrderData), "formModel");
                         }
                     });
-
                 },
-                error: function () {
+                error: function (oError) {
                     sap.ui.core.BusyIndicator.hide();
-                    MessageBox.error("The server rejected the header request.");
+                    that.handleBackendError(oError); // Gestione errore centralizzata
+                    that.onNavBack();
                 }
             });
         },
 
-        // ------------------------------------------------------------------------
-        // 3. AZIONI DELLA PAGINA (Aggiungi Riga, Salva, Annulla)
-        // ------------------------------------------------------------------------
+        // ========================================================================
+        // 3. GESTIONE DIALOG AGGIUNTA ARTICOLO (FRAGMENT)
+        // ========================================================================
         
-        // Funzione per il tasto "+" nella tabella articoli
-        onAddArticleToOrder: function() {
-            const oFormModel = this.getModel("formModel");
-            const aArticles = oFormModel.getProperty("/Articoli");
-            
-            // Aggiungiamo una riga vuota all'array
-            aArticles.push({
-                CodArticolo: "",
-                NomeArticolo: "",
-                QuantitaOrdine: 1,
-                Importo: 0
-            });
-            
-            // Aggiorniamo il modello (la tabella si aggiornerà da sola!)
-            oFormModel.setProperty("/Articoli", aArticles);
+        /**
+         * Apre il popup per l'inserimento di un nuovo articolo.
+         */
+        onAddArticleToOrder: function () {
+            const oView = this.getView();
+
+            // Verifica se il Fragment esiste già in memoria per non ricrearlo inutilmente (Performance)
+            if (!this.byId("articleDialog")) {
+                Fragment.load({
+                    id: oView.getId(), // ID della vista per permettere l'uso di this.byId() dentro il fragment
+                    name: "orders.view.AddArticleDialog", // Percorso del file XML del Fragment
+                    controller: this // Collega le azioni del fragment a questo controller
+                }).then(function (oDialog) {
+                    // Collega il ciclo di vita del Dialog alla Vista (eredita modelli e traduzioni)
+                    oView.addDependent(oDialog);
+                    this._clearDialogFields();
+                    oDialog.open();
+                }.bind(this)); // .bind(this) assicura che all'interno della Promise 'this' sia il controller
+            } else {
+                // Se esiste già, resetta i campi e lo apre direttamente
+                this._clearDialogFields();
+                this.byId("articleDialog").open();
+            }
         },
 
+        /**
+         * Pulisce i valori degli input nella Dialog.
+         */
+        _clearDialogFields: function () {
+            this.byId("inputDialogCode").setValue("");
+            this.byId("inputDialogQty").setValue("1");
+            this.byId("inputDialogName").setValue("");
+            this.byId("inputDialogPrice").setValue("");
+        },
+
+        /**
+         * Conferma l'aggiunta dell'articolo alla tabella locale.
+         */
+        onConfirmAddArticle: function () {
+            // Recupero valori dai campi di input tramite ID
+            const sCode = this.byId("inputDialogCode").getValue();
+            const sQty = this.byId("inputDialogQty").getValue();
+            const sName = this.byId("inputDialogName").getValue();
+            const sPrice = this.byId("inputDialogPrice").getValue();
+
+            // Validazione minima obbligatorietà
+            if (!sCode || !sQty) {
+                MessageBox.warning(this.getText("msgErrorFieldsEmpty"));
+                return;
+            }
+
+            // Crea l'oggetto articolo convertendo le stringhe della UI nei tipi corretti
+            const oNewRow = {
+                CodArticolo: parseInt(sCode, 10),
+                NomeArticolo: sName || "Articolo Sconosciuto",
+                QuantitaOrdine: parseInt(sQty, 10),
+                Importo: parseFloat(sPrice) || 0
+            };
+
+            const oFormModel = this.getModel("formModel");
+            const aArticles = oFormModel.getProperty("/Articoli"); // Ottiene l'array corrente
+            
+            aArticles.push(oNewRow); // Aggiunge il nuovo elemento all'array
+            
+            // Aggiorna la proprietà nel modello per triggerare il refresh della tabella UI
+            oFormModel.setProperty("/Articoli", aArticles);
+
+            // Aggiorna il totale dell'ordine
+            this._recalculateTotal(oFormModel);
+
+            // Chiude il popup
+            this.byId("articleDialog").close();
+        },
+
+        /**
+         * Chiude la Dialog senza salvare nulla.
+         */
+        onCancelAddArticle: function () {
+            this.byId("articleDialog").close();
+        },
+
+        /**
+         * Ricalcola la somma totale basandosi sugli articoli presenti nel formModel.
+         * @param {sap.ui.model.json.JSONModel} oFormModel Il modello da aggiornare.
+         */
+        _recalculateTotal: function(oFormModel) {
+            const aArticles = oFormModel.getProperty("/Articoli");
+            let fTotal = 0;
+            
+            // Itera su ogni riga e somma il prodotto Quantità * Prezzo
+            aArticles.forEach(function(item) {
+                const iQty = parseInt(item.QuantitaOrdine) || 1;
+                const fPrice = parseFloat(item.Importo) || 0;
+                fTotal += (iQty * fPrice);
+            });
+            
+            // Formatta a 2 decimali e salva nel modello
+            oFormModel.setProperty("/ImportoTot", fTotal.toFixed(2));
+        },
+
+        // ========================================================================
+        // 4. SALVATAGGIO FINALE (DEEP INSERT)
+        // ========================================================================
+
+        /**
+         * Prepara il payload complesso e invia tutto a SAP in un'unica transazione.
+         */
         onSave: function () {
             const oFormModel = this.getModel("formModel");
             const oViewModel = this.getModel("viewModel");
-            const oODataModel = this.getOwnerComponent().getModel();
             const that = this;
 
             const oFormData = oFormModel.getData();
             const bIsNew = oViewModel.getProperty("/isNew");
 
-            // 1. Validazione di base
+            // Controllo validità testata
             if (!oFormData.Cliente || oFormData.Cliente.trim() === "") {
-                MessageBox.error("Customer name is mandatory.");
+                MessageBox.error(this.getText("msgErrorFieldsEmpty"));
                 return;
             }
 
-            // 2. Prepariamo l'array degli articoli ripulito per SAP
-            // Assicuriamoci che i numeri siano numeri e non stringhe di testo
+            // 1. Preparazione Articoli per SAP (Mapping dei tipi dati corretti)
             const aItemsSap = [];
-            let fTotalAmount = 0; // Ricalcoliamo il totale per sicurezza
+            let fTotalAmount = 0;
 
             if (oFormData.Articoli && oFormData.Articoli.length > 0) {
                 oFormData.Articoli.forEach(function(item) {
-                    const iQty = parseInt(item.QuantitaOrdine) || 1;
+                    const iQty = parseInt(item.QuantitaOrdine, 10) || 1;
                     const fPrice = parseFloat(item.Importo) || 0;
                     
                     aItemsSap.push({
-                        "CodArticolo": parseInt(item.CodArticolo) || 0,
+                        "CodArticolo": parseInt(item.CodArticolo, 10) || 0,
                         "NomeArticolo": item.NomeArticolo || "",
                         "QuantitaOrdine": iQty,
                         "Importo": fPrice
@@ -177,65 +280,52 @@ sap.ui.define([
                 });
             }
 
-            // 3. Mappiamo lo Stato Testuale nel numero che vuole SAP
-            let iStato = 1; // Default: Nuovo
+            // 2. Mapping dello Stato (Converte le descrizioni UI in codici DB)
+            let iStato = 1; 
             if (oFormData.StatoTxt === "In Lavorazione") iStato = 2;
             if (oFormData.StatoTxt === "Completato") iStato = 3;
 
-            // 4. Costruiamo il PACCHETTO DEEP perfetto
-            const sOperation = bIsNew ? "C" : "U";
+            // 3. Costruzione del Deep Payload (La struttura deve riflettere l'EDM di SAP)
+            const sOperation = bIsNew ? "C" : "U"; 
             const iNumOrdine = bIsNew ? 0 : parseInt(oFormData.NumOrdine, 10);
 
             const oDeepPayload = {
-                "Operation": sOperation, // La magia è tutta qui: 'C' per Nuovo, 'U' per Modifica
+                "Operation": sOperation, 
                 "NumOrdine": iNumOrdine,
                 
+                // Entità Testata
                 "ZET_lista_ordini": {
                     "NumOrdine": iNumOrdine,
                     "Cliente": oFormData.Cliente,
-                    "DataOrdine": new Date(), // Aggiorniamo la data a oggi
+                    "DataOrdine": new Date(), 
                     "ImportoTot": fTotalAmount,
                     "Stato": iStato
                 },
                 
+                // Navigation Property verso i dettagli (Deep Insert)
                 "ZET_dettagli_ordiniSet": aItemsSap
             };
 
             sap.ui.core.BusyIndicator.show(0);
 
-            // 5. Invio al server SAP!
-            oODataModel.create("/ZES_DeepOrdiniSet", oDeepPayload, {
-                success: function () {
-                    sap.ui.core.BusyIndicator.hide();
-                    
-                    // Mostriamo il messaggio giusto
-                    MessageToast.show(bIsNew ? "Order successfully created!" : "Order successfully updated!");
-                    
-                    // Ricarichiamo il modello globale per aggiornare la tabella nella Home
-                    oODataModel.refresh(true); 
-                    
-                    // Torniamo indietro alla Home
-                    that.onNavBack(); 
-                },
-                error: function (oError) {
-                    sap.ui.core.BusyIndicator.hide();
-                    
-                    // Cerchiamo di estrarre il messaggio di errore esatto di SAP
-                    let sMsg = "Error during save.";
-                    try {
-                        const oErrorObj = JSON.parse(oError.responseText);
-                        if (oErrorObj.error && oErrorObj.error.message) {
-                            sMsg = oErrorObj.error.message.value;
-                        }
-                    } catch (e) {}
-                    
-                    MessageBox.error(sMsg);
-                }
+            // 4. Chiamata alla funzione del BaseController che usa una Promise per il CREATE
+            this.odataCreate("/ZES_DeepOrdiniSet", oDeepPayload)
+            .then(function () {
+                sap.ui.core.BusyIndicator.hide();
+                MessageToast.show(that.getText("msgOrderCloseConfirm")); 
+                that.getModel().refresh(true); // Ricarica il modello OData per aggiornare altre viste
+                that.onNavBack(); // Torna alla lista
+            })
+            .catch(function (oError) {
+                sap.ui.core.BusyIndicator.hide();
+                that.handleBackendError(oError); 
             });
         },
 
+        /**
+         * Annulla l'operazione e torna indietro.
+         */
         onCancel: function () {
-            // Torniamo semplicemente indietro senza salvare
             this.onNavBack();
         }
     });
