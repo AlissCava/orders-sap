@@ -5,8 +5,9 @@ sap.ui.define([
     "sap/ui/model/FilterOperator",      
     "sap/ui/model/json/JSONModel",      
     "sap/m/MessageBox",                 
-    "sap/m/MessageToast"                
-], function (BaseController, Spreadsheet, Filter, FilterOperator, JSONModel, MessageBox, MessageToast) {
+    "sap/m/MessageToast",
+    "sap/ui/model/Sorter"               
+], function (BaseController, Spreadsheet, Filter, FilterOperator, JSONModel, MessageBox, MessageToast, Sorter) {
     "use strict";
 
     return BaseController.extend("orders.controller.Home", {
@@ -199,6 +200,32 @@ sap.ui.define([
                     }
                 }
             });
-        }
+        },
+
+        // ========================================================================
+        // GESTIONE ORDINAMENTO (SORT)
+        // ========================================================================
+        onSort: function () {
+            // 1. Recuperiamo il binding degli elementi della tabella
+            const oTable = this.byId("ordersTable");
+            const oBinding = oTable.getBinding("items");
+
+            // 2. Creiamo una variabile per decidere la direzione (la salviamo nel controller per ricordarcela)
+            // Se non esiste, iniziamo con decrescente (true)
+            this._bSortDescending = !this._bSortDescending;
+
+            // 3. Creiamo l'oggetto Sorter. 
+            // Parametro 1: Il campo del database (es. "DataOrdine")
+            // Parametro 2: Booleano per il verso (true = decrescente, false = crescente)
+            const oSorter = new Sorter("DataOrdine", this._bSortDescending);
+
+            // 4. Applichiamo l'ordinamento alla tabella
+            oBinding.sort(oSorter);
+
+            // Opzionale: un piccolo feedback per l'utente
+            const sMessage = this._bSortDescending ? "Ordinato per data (Recenti prima)" : "Ordinato per data (Vecchi prima)";
+            MessageToast.show(sMessage);
+        },
+
     });
 });
