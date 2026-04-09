@@ -46,10 +46,12 @@
       },
       "": {
         "dataSource": "mainService",
+        "type": "sap.ui.model.odata.v2.ODataModel", 
         "settings": {
           "defaultOperationMode": "Server",
           "defaultBindingMode": "TwoWay",
-          "useBatch": false
+          "useBatch": false,
+          "defaultCountMode": "Inline" 
         }
       }
     },

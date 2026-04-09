@@ -6,11 +6,14 @@ sap.ui.define([
     "sap/ui/model/json/JSONModel",      
     "sap/m/MessageBox",                 
     "sap/m/MessageToast",
-    "sap/ui/model/Sorter"               
-], function (BaseController, Spreadsheet, Filter, FilterOperator, JSONModel, MessageBox, MessageToast, Sorter) {
+    "sap/ui/model/Sorter",
+    "orders/model/formatter"              
+], function (BaseController, Spreadsheet, Filter, FilterOperator, JSONModel, MessageBox, MessageToast, Sorter, formatter) {
     "use strict";
 
     return BaseController.extend("orders.controller.Home", {
+
+        formatter: formatter,
 
         onInit: function () {
             // Crea un modello JSON per gestire i conteggi totali della vista
