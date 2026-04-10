@@ -308,14 +308,32 @@ sap.ui.define([
 
             sap.ui.core.BusyIndicator.show(0);
 
-            // 4. Chiamata alla funzione del BaseController che usa una Promise per il CREATE
+            // 4. DELEGHIAMO AL PADRE! Usiamo la Promise odataCreate per il Deep Insert
             this.odataCreate("/ZES_DeepOrdiniSet", oDeepPayload)
             .then(function () {
                 sap.ui.core.BusyIndicator.hide();
-                MessageToast.show(that.getText("msgOrderCloseConfirm")); 
-                that.getModel().refresh(true); // Ricarica il modello OData per aggiornare altre viste
-                that.onNavBack(); // Torna alla lista
+                
+                // 1. Messaggio fisso ultra-sicuro
+                MessageToast.show("Ordine salvato con successo!"); 
+                
+                // 2. Aggiornamento del modello globale forzato
+                if (that.getOwnerComponent().getModel()) {
+                    that.getOwnerComponent().getModel().refresh(true); 
+                }
+                
+                // 3. Navigazione manuale e sicura alla pagina precedente
+                const oHistory = sap.ui.core.routing.History.getInstance();
+                const sPreviousHash = oHistory.getPreviousHash();
+
+                if (sPreviousHash !== undefined) {
+                    // Se c'è una cronologia, simula il tasto "Indietro" del browser
+                    window.history.go(-1);
+                } else {
+                    // Altrimenti naviga esplicitamente alla Home (controlla che si chiami "TargetHome" o "RouteHome" nel tuo manifest)
+                    that.getRouter().navTo("TargetHome", {}, true); 
+                }
             })
+            
             .catch(function (oError) {
                 sap.ui.core.BusyIndicator.hide();
                 that.handleBackendError(oError); 
