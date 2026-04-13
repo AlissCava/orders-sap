@@ -1,26 +1,62 @@
-<mvc:View controllerName="orders.controller.Dashboard"
+<mvc:View
+    controllerName="orders.controller.Dashboard"
     xmlns:mvc="sap.ui.core.mvc"
     xmlns="sap.m"
-    xmlns:mc="sap.suite.ui.microchart"
+    xmlns:layout="sap.ui.layout"
+    xmlns:viz="sap.viz.ui5.controls"
+    xmlns:viz.feeds="sap.viz.ui5.controls.common.feeds"
+    xmlns:viz.data="sap.viz.ui5.data"
     displayBlock="true">
-    
-    <Page title="{i18n>dashboardPageTitle}">
-        <content>
-            <VBox class="sapUiMediumMargin" alignItems="Center">
-                
-                <Title text="{i18n>orderStatusTitle}" level="H2" class="sapUiSmallMarginBottom"/>
-                <HBox width="400px" justifyContent="Center">
-                    <mc:InteractiveDonutChart id="donutChart" segments="{statsModel>/Statuses}">
-                        <mc:segments>
-                            <mc:InteractiveDonutChartSegment 
-                                label="{statsModel>label}" 
-                                value="{statsModel>value}" 
-                                displayedValue="{statsModel>displayValue}"/>
-                        </mc:segments>
-                    </mc:InteractiveDonutChart>
-                </HBox>
-                
+
+    <Page title="{i18n>dashboardTitle}" class="sapUiContentPadding">
+        <layout:Grid defaultSpan="L6 M6 S12">
+            
+            <VBox class="myCustomCard sapUiSmallMargin">
+                <Title text="Stato Ordini" level="H2" class="sapUiSmallMargin"/>
+                <viz:VizFrame 
+                    id="statusChart" 
+                    uiConfig="{applicationSet:'fiori'}"
+                    height="350px" width="100%" 
+                    vizType="pie"
+                    vizProperties="{
+                        title: { visible: false },
+                        plotArea: { 
+                            dataLabel: { 
+                                visible: true,
+                                style: { fontWeight: 'bold' },
+                                showTotal: true
+                            },
+                            colorPalette: [ 
+                                '#7b1fa2', 
+                                '#9c27b0', 
+                                '#ba68c8', 
+                                '#e1bee7'
+                            ]
+                        },
+                        legend: {
+                            title: { visible: false },
+                            label: { style: { fontSize: '14px' } }
+                        }
+                    }">
+                    
+                    <viz:dataset>
+                        <viz.data:FlattenedDataset data="{statsModel>/Statuses}">
+                            <viz.data:dimensions>
+                                <viz.data:DimensionDefinition name="Stato" value="{statsModel>label}" />
+                            </viz.data:dimensions>
+                            <viz.data:measures>
+                                <viz.data:MeasureDefinition name="Quantità" value="{statsModel>value}" />
+                            </viz.data:measures>
+                        </viz.data:FlattenedDataset>
+                    </viz:dataset>
+
+                    <viz:feeds>
+                        <viz.feeds:FeedItem uid="size" type="Measure" values="Quantità" />
+                        <viz.feeds:FeedItem uid="color" type="Dimension" values="Stato" />
+                    </viz:feeds>
+                </viz:VizFrame>
             </VBox>
-        </content>
+
+        </layout:Grid>
     </Page>
 </mvc:View>

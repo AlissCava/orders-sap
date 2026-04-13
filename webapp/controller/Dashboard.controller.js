@@ -39,7 +39,11 @@ sap.ui.define([
 
                     // Trasformiamo i conteggi in array per i grafici
                     const aStatusStats = Object.keys(oStatusCounts).map(function (sKey) {
-                        return { label: sKey, value: oStatusCounts[sKey] };
+                        return { 
+                            label: sKey, 
+                            value: oStatusCounts[sKey],
+                            displayValue: oStatusCounts[sKey].toString() 
+                        };
                     });
 
                     const aCustomerStats = Object.keys(oCustomerCounts).map(function (sKey) {

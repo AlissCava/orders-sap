@@ -34,7 +34,8 @@
         "sap.m": {},
         "sap.ui.core": {},
         "sap.suite.ui.microchart": {},
-        "sap.ui.layout": {}
+        "sap.ui.layout": {},
+        "sap.viz": {}
       }
     },
     "models": {
