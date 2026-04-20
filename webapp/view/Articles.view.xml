@@ -40,7 +40,7 @@
                         
                         <Text text="{QuantitaDisp}" />
                         
-                        <ObjectNumber number="{ path: 'Importo', formatter: '.formatter.currencyValue' }" />
+                        <ObjectNumber number="{ path: 'Importo', formatter: '.formatter.formatItalianEuro' }" />
                     </cells>
                 </ColumnListItem>
             </items>

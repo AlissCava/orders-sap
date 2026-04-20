@@ -39,6 +39,21 @@ sap.ui.define([], function () {
             } else {
                 return "sap-icon://in-progress"; // Orologio arancione
             }
+        },
+
+        formatItalianEuro: function (sValue) {
+            if (!sValue) { 
+                return "0,00 €"; 
+            }
+            const fValue = parseFloat(sValue);
+            if (isNaN(fValue)) {
+                return "0,00 €";
+            }
+            const sFormattedNumber = fValue.toLocaleString('it-IT', { 
+                minimumFractionDigits: 2, 
+                maximumFractionDigits: 2 
+            });
+            return sFormattedNumber + " €";
         }
     };
 });
