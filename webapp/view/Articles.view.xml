@@ -12,6 +12,12 @@
                 <OverflowToolbar>
                     <Title text="{i18n>articlesPageTitle}" />
                     <ToolbarSpacer />
+                    
+                    <SearchField 
+                        placeholder="{i18n>searchArticlePlaceholder}" 
+                        liveChange=".onSearchArticle" 
+                        width="300px" />
+                        
                     <Button text="{i18n>btnExportExcel}" icon="sap-icon://excel-attachment" press=".onExportExcel" />
                     <Button text="{i18n>btnNewArticle}" type="Emphasized" press=".onCreateArticle" />
                 </OverflowToolbar>

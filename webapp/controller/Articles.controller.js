@@ -117,6 +117,31 @@ sap.ui.define([
             oSheet.build().finally(function() {
                 oSheet.destroy(); // Distrugge l'oggetto per liberare risorse RAM
             });
-        }
+            
+        },
+        
+        // ========================================================================
+        // RICERCA FILTRATA ARTICOLI (PER NOME)
+        // ========================================================================
+        onSearchArticle: function (oEvent) {
+            // Prepariamo l'array dei filtri vuoto
+            const aFilters = [];
+            
+            // Leggiamo la parola che l'utente sta digitando
+            const sQuery = oEvent.getSource().getValue();
+
+            // Se c'è del testo, creiamo il filtro
+            if (sQuery && sQuery.length > 0) {
+                // "NomeArticolo" è il campo esatto che hai nel database per questa View
+                // Contains cerca la parola ovunque all'interno del nome
+                const oFilter = new Filter("NomeArticolo", FilterOperator.Contains, sQuery);
+                aFilters.push(oFilter);
+            }
+
+            // Recuperiamo la tabella dal suo ID ("articlesTable") e applichiamo il filtro
+            const oTable = this.byId("articlesTable");
+            const oBinding = oTable.getBinding("items");
+            oBinding.filter(aFilters);
+        },
     });
 });
