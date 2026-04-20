@@ -16,7 +16,7 @@
                     <Label text="{i18n>colArticleName}" />
                     <Input id="inputDialogName" />
                     
-                    <Label text="{i18n>colPrice}" />
+                    <Label text="{i18n>colPrice}" required="true" />
                     <Input id="inputDialogPrice" type="Number" description="€" textAlign="End" />
                 </f:content>
             </f:SimpleForm>
