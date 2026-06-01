@@ -16,7 +16,7 @@ sap.ui.define([], function () {
         // 2. FORMATTAZIONE COLORE STATO
         // ------------------------------------------------------------------------
         statusState: function (sStatus) {
-            if (sStatus === "Chiuso" || sStatus === 1) {
+            if (sStatus === "Chiuso" || sStatus === 4) {
                 return "Success"; // Verde
             } else if (sStatus === "Cancellato" || sStatus === 4) {
                 return "Error"; // Rosso
@@ -31,7 +31,7 @@ sap.ui.define([], function () {
         // 3. FORMATTAZIONE ICONA STATO
         // ------------------------------------------------------------------------
         statusIcon: function (sStatus) {
-            if (sStatus === "Chiuso" || sStatus === 1) {
+            if (sStatus === "Chiuso" || sStatus === 4) {
                 return "sap-icon://sys-enter-2"; // Spunta
             } else if (sStatus === "Cancellato" || sStatus === 4) {
                 return "sap-icon://error"; // X rossa

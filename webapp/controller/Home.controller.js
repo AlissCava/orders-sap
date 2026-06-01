@@ -146,27 +146,43 @@ sap.ui.define([
         },
 
         // ========================================================================
-        // RICERCA FILTRATA ODATA (TESTO + STATO NUMERICO)
+        // RICERCA FILTRATA ODATA (TESTO + STATO NUMERICO + DATE)
         // ========================================================================
         onSearch: function (oEvent) {
             var aFilters = [];
 
+            // 1. Lettura Testo
             var oSearchField = this.byId("searchField");
             var sSearchQuery = oSearchField ? oSearchField.getValue() : "";
 
-            // Recuperiamo la KEY numerica dalla tendina
+            // 2. Lettura Stato
             var sStatusKey = this.byId("statusFilter").getSelectedKey();
 
+            // 3. Lettura Date
+            var oDateRange = this.byId("dateFilter");
+            var oDateFrom = oDateRange ? oDateRange.getDateValue() : null;
+            var oDateTo = oDateRange ? oDateRange.getSecondDateValue() : null;
+
+            // Filtro Testo
             if (sSearchQuery && sSearchQuery.length > 0) {
                 aFilters.push(new Filter("Cliente", FilterOperator.Contains, sSearchQuery));
             }
 
-            // FIX: Filtriamo sul campo "Stato" (non StatoTxt) e convertiamo la key in un numero interno (es. 2)
+            // Filtro Stato (Conversione in numero)
             if (sStatusKey && sStatusKey !== "") {
                 var iStatoNumero = parseInt(sStatusKey, 10);
                 aFilters.push(new Filter("Stato", FilterOperator.EQ, iStatoNumero));
             }
 
+            // Filtro Date (Approccio Minimalista: passaggio date crudo)
+            if (oDateFrom) {
+                var oStart = oDateFrom;
+                var oEnd = oDateTo ? oDateTo : oDateFrom;
+
+                aFilters.push(new Filter("DataOrdine", FilterOperator.BT, oStart, oEnd));
+            }
+
+            // Applica tutto alla tabella
             this.byId("ordersTable").getBinding("items").filter(aFilters);
         },
 
@@ -174,8 +190,8 @@ sap.ui.define([
         // SOFT DELETE (ARCHIVIAZIONE CON WORKAROUND LOCALE)
         // ========================================================================
         onDeleteOrder: function (oEvent) {
-            // Catturiamo il contesto prima di aprire il popup, altrimenti lo perdiamo!
-            const oContext = oEvent.getParameter("listItem").getBindingContext();
+            // FIX: Catturiamo il contesto dal nuovo bottone personalizzato invece che dalla listItem
+            const oContext = oEvent.getSource().getBindingContext();
             const oRowData = oContext.getObject(); 
             const that = this; 
 

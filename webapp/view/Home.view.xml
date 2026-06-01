@@ -10,8 +10,6 @@
             <Table  id="ordersTable" 
                     class="myCustomCard"
                     items="{/ZES_lista_ordiniSet}" 
-                    mode="Delete" 
-                    delete=".onDeleteOrder" 
                     updateFinished=".onTableUpdateFinished" 
                     growing="true" 
                     growingThreshold="10"> 
@@ -23,11 +21,14 @@
                         <Label text="{i18n>lblStatusFilter}" labelFor="statusFilter" class="sapUiTinyMarginEnd sapUiSmallMarginBegin" />
                         <Select id="statusFilter" change=".onSearch" forceSelection="false" width="180px">
                             <core:Item key="" text="{i18n>statusAll}" />
-                            <core:Item key="0" text="{i18n>statusCreated}" /> 
+                            <core:Item key="1" text="{i18n>statusCreated}" /> 
                             <core:Item key="2" text="{i18n>statusProcessing}" />
                             <core:Item key="3" text="{i18n>statusTransit}" />
-                            <core:Item key="1" text="{i18n>statusClosed}" />
+                            <core:Item key="4" text="{i18n>statusClosed}" />
                         </Select>
+
+                        <Label text="Periodo:" labelFor="dateFilter" class="sapUiTinyMarginEnd sapUiSmallMarginBegin" />
+                        <DateRangeSelection id="dateFilter" change=".onSearch" displayFormat="dd/MM/yyyy" width="220px" />
                         
                         <ToolbarSpacer />
                         
@@ -43,6 +44,8 @@
                     <Column><Text text="{i18n>colOrderDate}" /></Column> 
                     <Column hAlign="End"><Text text="{i18n>colTotalAmount}" /></Column>
                     <Column><Text text="{i18n>colStatus}" /></Column>
+                    
+                    <Column width="3rem" hAlign="Center"></Column>
                 </columns>
 
                 <items>
@@ -62,6 +65,8 @@
                                 text="{StatoTxt}" 
                                 state="{ path: 'StatoTxt', formatter: '.formatter.statusState' }" 
                                 icon="{ path: 'StatoTxt', formatter: '.formatter.statusIcon' }" />
+                                
+                            <Button icon="sap-icon://delete" type="Transparent" press=".onDeleteOrder" tooltip="Elimina Ordine" />
                         </cells>
                     </ColumnListItem>
                 </items>
