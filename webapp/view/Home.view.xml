@@ -18,14 +18,15 @@
                     
                 <headerToolbar>
                     <OverflowToolbar>
-                        <SearchField width="300px" placeholder="{i18n>searchPlaceholder}" liveChange=".onSearch" />
+                        <SearchField id="searchField" width="200px" placeholder="{i18n>searchPlaceholder}" liveChange=".onSearch" />
                         
-                        <Select id="statusFilter" change=".onSearch" forceSelection="false" width="200px">
-                            <core:Item key="" text="Tutti gli Stati" />
-                            <core:Item key="Nuovo" text="Nuovo" />
-                            <core:Item key="In Lavorazione" text="In Lavorazione" />
-                            <core:Item key="Completato" text="Completato" />
-                            <core:Item key="Cancellato" text="Cancellato" />
+                        <Label text="{i18n>lblStatusFilter}" labelFor="statusFilter" class="sapUiTinyMarginEnd sapUiSmallMarginBegin" />
+                        <Select id="statusFilter" change=".onSearch" forceSelection="false" width="180px">
+                            <core:Item key="" text="{i18n>statusAll}" />
+                            <core:Item key="0" text="{i18n>statusCreated}" /> 
+                            <core:Item key="2" text="{i18n>statusProcessing}" />
+                            <core:Item key="3" text="{i18n>statusTransit}" />
+                            <core:Item key="1" text="{i18n>statusClosed}" />
                         </Select>
                         
                         <ToolbarSpacer />

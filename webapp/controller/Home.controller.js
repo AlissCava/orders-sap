@@ -146,29 +146,27 @@ sap.ui.define([
         },
 
         // ========================================================================
-        // RICERCA FILTRATA ODATA (TESTO + STATO)
+        // RICERCA FILTRATA ODATA (TESTO + STATO NUMERICO)
         // ========================================================================
         onSearch: function (oEvent) {
-            // Creiamo un array che conterrà tutti i filtri da applicare contemporaneamente
-            const aFilters = [];
+            var aFilters = [];
 
-            // Leggiamo la parola digitata dall'utente nella barra di ricerca
-            const sSearchQuery = this.byId("ordersTable").getHeaderToolbar().getContent()[0].getValue();
+            var oSearchField = this.byId("searchField");
+            var sSearchQuery = oSearchField ? oSearchField.getValue() : "";
 
-            // Leggiamo l'opzione selezionata dall'utente nella tendina dello stato
-            const sStatusQuery = this.byId("statusFilter").getSelectedKey();
+            // Recuperiamo la KEY numerica dalla tendina
+            var sStatusKey = this.byId("statusFilter").getSelectedKey();
 
-            // Se l'utente ha scritto qualcosa, cerchiamo quella parola all'interno del nome "Cliente" (Contains)
             if (sSearchQuery && sSearchQuery.length > 0) {
                 aFilters.push(new Filter("Cliente", FilterOperator.Contains, sSearchQuery));
             }
 
-            // Se l'utente ha scelto uno stato (e non l'opzione vuota "Tutti gli stati"), filtriamo per stato esatto (EQ)
-            if (sStatusQuery && sStatusQuery !== "") {
-                aFilters.push(new Filter("StatoTxt", FilterOperator.EQ, sStatusQuery));
+            // FIX: Filtriamo sul campo "Stato" (non StatoTxt) e convertiamo la key in un numero interno (es. 2)
+            if (sStatusKey && sStatusKey !== "") {
+                var iStatoNumero = parseInt(sStatusKey, 10);
+                aFilters.push(new Filter("Stato", FilterOperator.EQ, iStatoNumero));
             }
 
-            // Applichiamo i filtri alla tabella. UI5 chiamerà il backend in automatico per farsi dare i dati giusti.
             this.byId("ordersTable").getBinding("items").filter(aFilters);
         },
 
