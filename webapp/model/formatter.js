@@ -41,6 +41,9 @@ sap.ui.define([], function () {
             }
         },
 
+        // ------------------------------------------------------------------------
+        // 4. FORMATTAZIONE EURO ITALIANO (es. 20.000,00 €)
+        // ------------------------------------------------------------------------
         formatItalianEuro: function (sValue) {
             if (!sValue) { 
                 return "0,00 €"; 
@@ -54,6 +57,32 @@ sap.ui.define([], function () {
                 maximumFractionDigits: 2 
             });
             return sFormattedNumber + " €";
+        },
+
+        // ------------------------------------------------------------------------
+        // 5. FORMATTAZIONE DATA (gg/mm/aaaa)
+        // ------------------------------------------------------------------------
+        formatItalianDate: function (oDate) {
+            // Se la data è nulla o vuota, restituisce una stringa vuota per non far crashare la tabella
+            if (!oDate) {
+                return "";
+            }
+
+            // Assicuriamoci che sia un oggetto Date valido
+            const d = new Date(oDate);
+            
+            // Se la conversione fallisce, restituiamo il dato grezzo
+            if (isNaN(d.getTime())) {
+                return oDate;
+            }
+
+            // Estraiamo giorno, mese e anno forzando i due zeri (es. 05 invece di 5)
+            const day = d.getDate().toString().padStart(2, '0');
+            const month = (d.getMonth() + 1).toString().padStart(2, '0');
+            const year = d.getFullYear();
+
+            // Restituiamo il formato gg/mm/aaaa
+            return day + "/" + month + "/" + year;
         }
     };
 });

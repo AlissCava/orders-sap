@@ -41,7 +41,7 @@
                     <Column><Text text="{i18n>colCustomer}" /></Column>
                     <Column><Text text="{i18n>colOrderDate}" /></Column> 
                     <Column hAlign="End"><Text text="{i18n>colTotalAmount}" /></Column>
-                    <Column hAlign="Center"><Text text="{i18n>colStatus}" /></Column>
+                    <Column><Text text="{i18n>colStatus}" /></Column>
                 </columns>
 
                 <items>
@@ -52,8 +52,7 @@
                             
                             <Text text="{ 
                                 path: 'DataOrdine', 
-                                type: 'sap.ui.model.type.Date', 
-                                formatOptions: { style: 'medium' } 
+                                formatter: '.formatter.formatItalianDate' 
                             }" />
                             
                             <ObjectNumber number="{ path: 'ImportoTot', formatter: '.formatter.currencyValue' }" />
@@ -68,12 +67,8 @@
             </Table>
             
             <VBox class="myCustomCard sapUiSmallMargin" alignItems="End">
-                <HBox alignItems="Center" class="sapUiTinyMarginBottom">
-                    <Label text="{i18n>lblTotalOrders}" design="Bold" class="sapUiSmallMarginEnd" />
-                    <Text text="{summaryModel>/TotalCount}" />
-                </HBox>
-                <HBox alignItems="Center">
-                    <Label text="{i18n>lblTotalValue}" design="Bold" class="sapUiSmallMarginEnd" />
+                <HBox alignItems="Center" justifyContent="End" width="100%">
+                    <Label text="{i18n>lblTotalValue}:" design="Bold" class="sapUiSmallMarginEnd" />
                     <ObjectNumber number="{ path: 'summaryModel>/TotalValue', formatter: '.formatter.currencyValue' }" state="Success" />
                 </HBox>
             </VBox>
