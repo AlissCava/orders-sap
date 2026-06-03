@@ -109,16 +109,21 @@ sap.ui.define([
         // ========================================================================
         // EXPORT EXCEL
         // ========================================================================
+       // ========================================================================
+        // EXPORT EXCEL
+        // ========================================================================
         onExport: function () {
             // Recupera il file i18n.properties per usare le traduzioni corrette per le intestazioni
             const oBundle = this.getResourceBundle();
+            const that = this; // Salviamo il riferimento al controller per poter chiamare il formatter
             
             // Configura le colonne del file Excel collegando l'etichetta tradotta al nome tecnico del database
             const aCols = [
                 { label: oBundle.getText("colOrderID"), property: "NumOrdine", type: "number" },
                 { label: oBundle.getText("colCustomer"), property: "Cliente", type: "string" },
                 { label: oBundle.getText("colOrderDate"), property: "DataOrdine", type: "date", format: "dd/MM/yyyy" },
-                { label: oBundle.getText("colTotalAmount"), property: "ImportoTot", type: "number" },
+                // FIX: Cambiamo in stringa e puntiamo a una nuova proprietà formattata
+                { label: oBundle.getText("colTotalAmount"), property: "ImportoFormattato", type: "string" },
                 { label: oBundle.getText("colStatus"), property: "StatoTxt", type: "string" }
             ];
 
@@ -128,7 +133,15 @@ sap.ui.define([
             
             // "Srotola" i contesti complessi di UI5 in semplici oggetti Javascript leggibili dalla libreria Excel
             const aData = aContexts.map(function (oContext) {
-                return oContext.getObject();
+                const oRow = oContext.getObject();
+                
+                // Creiamo un clone della riga per non alterare i dati originali in memoria
+                const oExportRow = Object.assign({}, oRow);
+                
+                // Usiamo lo stesso formatter dell'interfaccia per creare la stringa esatta (es. "1200.00 €")
+                oExportRow.ImportoFormattato = that.formatter.currencyValue(oRow.ImportoTot);
+                
+                return oExportRow;
             });
 
             // Prepara il file da generare
@@ -143,6 +156,7 @@ sap.ui.define([
             oSheet.build().finally(function () {
                 oSheet.destroy(); 
             });
+        },
         },
 
         // ========================================================================
