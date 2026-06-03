@@ -1,6 +1,3 @@
-/* ========================================================== */
-/* TEMA LILLA PERSONALIZZATO (Elegante e ad Alto Contrasto)   */
-/* ========================================================== */
 
 /* 1. Sfondo generale dell'app leggermente scaldato */
 .sapMApp {
@@ -67,4 +64,10 @@
 /* 9. Icone del menu laterale in tinta */
 .sapUiIcon {
     color: #7b1fa2 !important;
+}
+
+/* 10. Uniforma la dimensione del testo e delle icone su TUTTI i bottoni (Standard, Trasparenti, Icone) */
+.sapMBtnContent,
+.sapMBtnIcon {
+    font-size: 1.1rem !important;
 }
