@@ -19,16 +19,16 @@
                     columnsM="2" columnsL="2" columnsXL="2">
                     <f:content>
                         <Label text="{i18n>colOrderID}" />
-                        <Input value="{formModel>/NumOrdine}" editable="{viewModel>/isNew}" />
-
+                        <Input value="{formModel>/NumOrdine}" editable="false" />
                         <Label text="{i18n>colCustomer}" required="true"/>
                         <Input value="{formModel>/Cliente}" placeholder="{i18n>placeholderCustomer}" />
 
                         <Label text="{i18n>colStatus}" />
-                        <Select selectedKey="{formModel>/StatoTxt}">
-                            <core:Item key="Nuovo" text="Nuovo" />
-                            <core:Item key="In Lavorazione" text="In Lavorazione" />
-                            <core:Item key="Completato" text="Completato" />
+                        <Select selectedKey="{formModel>/Stato}">
+                            <core:Item key="1" text="{i18n>statusCreated}" /> 
+                            <core:Item key="2" text="{i18n>statusProcessing}" />
+                            <core:Item key="3" text="{i18n>statusTransit}" />
+                            <core:Item key="4" text="{i18n>statusClosed}" />
                         </Select>
 
                         <Label text="{i18n>colTotalAmount}" />
