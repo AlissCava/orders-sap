@@ -109,9 +109,6 @@ sap.ui.define([
         // ========================================================================
         // EXPORT EXCEL
         // ========================================================================
-       // ========================================================================
-        // EXPORT EXCEL
-        // ========================================================================
         onExport: function () {
             // Recupera il file i18n.properties per usare le traduzioni corrette per le intestazioni
             const oBundle = this.getResourceBundle();
@@ -131,7 +128,7 @@ sap.ui.define([
             const oTable = this.byId("ordersTable");
             const aContexts = oTable.getBinding("items").getContexts();
             
-            // "Srotola" i contesti complessi di UI5 in semplici oggetti Javascript leggibili dalla libreria Excel
+            // "Srotola" i contesti complexes di UI5 in semplici oggetti Javascript leggibili dalla libreria Excel
             const aData = aContexts.map(function (oContext) {
                 const oRow = oContext.getObject();
                 
@@ -156,7 +153,6 @@ sap.ui.define([
             oSheet.build().finally(function () {
                 oSheet.destroy(); 
             });
-        },
         },
 
         // ========================================================================
@@ -257,26 +253,44 @@ sap.ui.define([
         },
 
         // ========================================================================
-        // GESTIONE ORDINAMENTO (SORT)
+        // GESTIONE ORDINAMENTO MULTIPLO (SORT VIA DIALOG)
         // ========================================================================
         onSort: function () {
-            // Colleghiamo l'oggetto tabella e il suo contenuto
-            const oTable = this.byId("ordersTable");
-            const oBinding = oTable.getBinding("items");
+            var that = this;
 
-            // Invertiamo il flag di ordinamento ogni volta che l'utente preme il pulsante
-            this._bSortDescending = !this._bSortDescending;
+            // Creiamo il dialog dinamicamente solo la prima volta che si clicca il bottone
+            if (!this._oSortDialog) {
+                this._oSortDialog = new sap.m.ViewSettingsDialog({
+                    title: "Ordina per",
+                    sortItems: [
+                        new sap.m.ViewSettingsItem({ text: "ID Ordine", key: "NumOrdine" }),
+                        new sap.m.ViewSettingsItem({ text: "Cliente", key: "Cliente" }),
+                        new sap.m.ViewSettingsItem({ text: "Data Ordine", key: "DataOrdine" }),
+                        new sap.m.ViewSettingsItem({ text: "Totale (€)", key: "ImportoTot" }),
+                        new sap.m.ViewSettingsItem({ text: "Stato", key: "StatoTxt" })
+                    ],
+                    confirm: function (oEvent) {
+                        // Recuperiamo la scelta dell'utente
+                        var oParams = oEvent.getParameters();
+                        var sPath = oParams.sortItem.getKey();
+                        var bDescending = oParams.sortDescending;
+                        
+                        // Creiamo e applichiamo il nuovo ordinatore usando Sorter iniettato
+                        var aSorters = [];
+                        aSorters.push(new Sorter(sPath, bDescending));
+                        
+                        var oTable = that.byId("ordersTable");
+                        var oBinding = oTable.getBinding("items");
+                        oBinding.sort(aSorters);
+                    }
+                });
+                
+                // Leghiamo il dialog alla vista per ereditare i modelli
+                this.getView().addDependent(this._oSortDialog);
+            }
 
-            // Creiamo un nuovo ordinatore basato sulla data.
-            // Il secondo parametro determina se è decrescente (true) o crescente (false)
-            const oSorter = new Sorter("DataOrdine", this._bSortDescending);
-
-            // Diamo l'istruzione di riordinare gli elementi
-            oBinding.sort(oSorter);
-
-            // Mostriamo un piccolo messaggio a scomparsa per confermare l'azione
-            const sMessage = this._bSortDescending ? "Ordinato: Più recenti" : "Ordinato: Meno recenti";
-            MessageToast.show(sMessage);
+            // Apriamo il popup
+            this._oSortDialog.open();
         }
 
     });
