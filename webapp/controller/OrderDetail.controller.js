@@ -15,11 +15,10 @@ sap.ui.define([
             this.getRouter().getRoute("RouteOrderDetail").attachPatternMatched(this._onObjectMatched, this);
         },
 
-        _onObjectMatched: function (oEvent) {
+        _onObjectMatched: async function (oEvent) {
             const sOrderId = oEvent.getParameter("arguments").orderId;
             const iOrderId = parseInt(sOrderId);
             
-            const oODataModel = this.getModel();
             const oDetailModel = this.getView().getModel("detailModel");
 
             // Svuotiamo il modello prima di caricare i nuovi dati
@@ -41,37 +40,38 @@ sap.ui.define([
 
             sap.ui.core.BusyIndicator.show(0);
 
-            // Chiamata di test
-            oODataModel.create("/ZES_DeepOrdiniSet", oReadPayload, {
-                success: function (oData) {
-                    sap.ui.core.BusyIndicator.hide();
-                    
-                    // Estraiamo gli articoli (questo è il pezzo che dobbiamo correggere 
-                    // in base a quello che vedremo nella console)
-                    let aArticles = []; // Usiamo let perché il valore cambia qui sotto
-                    if (oData.ZET_dettagli_ordiniSet && oData.ZET_dettagli_ordiniSet.results) {
-                        aArticles = oData.ZET_dettagli_ordiniSet.results;
-                    } else if (Array.isArray(oData.ZET_dettagli_ordiniSet)) {
-                        aArticles = oData.ZET_dettagli_ordiniSet;
-                    }
-
-                    // Impacchettiamo i dati puliti per l'XML
-                    // Lasciamo le chiavi in italiano per non rompere il binding con l'XML!
-                    const oCleanData = {
-                        Cliente: oData.ZET_lista_ordini ? oData.ZET_lista_ordini.Cliente : "",
-                        ImportoTot: oData.ZET_lista_ordini ? oData.ZET_lista_ordini.ImportoTot : 0,
-                        NumOrdine: oData.NumOrdine,
-                        StatoTxt: oData.ZET_lista_ordini ? oData.ZET_lista_ordini.StatoTxt : "",
-                        Articoli: aArticles
-                    };
-
-                    oDetailModel.setData(oCleanData);
-                },
-                error: function () {
-                    sap.ui.core.BusyIndicator.hide();
-                    MessageBox.error("Errore durante la lettura dell'ordine da SAP.");
+            try {
+                // Chiamata asincrona al backend tramite il wrapper del BaseController
+                const oData = await this.odataCreate("/ZES_DeepOrdiniSet", oReadPayload);
+                
+                sap.ui.core.BusyIndicator.hide();
+                
+                // Estraiamo gli articoli (questo è il pezzo che dobbiamo correggere 
+                // in base a quello che vedremo nella console)
+                let aArticles = []; // Usiamo let perché il valore cambia qui sotto
+                if (oData.ZET_dettagli_ordiniSet && oData.ZET_dettagli_ordiniSet.results) {
+                    aArticles = oData.ZET_dettagli_ordiniSet.results;
+                } else if (Array.isArray(oData.ZET_dettagli_ordiniSet)) {
+                    aArticles = oData.ZET_dettagli_ordiniSet;
                 }
-            });
+
+                // Impacchettiamo i dati puliti per l'XML
+                // Lasciamo le chiavi in italiano per non rompere il binding con l'XML!
+                const oCleanData = {
+                    Cliente: oData.ZET_lista_ordini ? oData.ZET_lista_ordini.Cliente : "",
+                    ImportoTot: oData.ZET_lista_ordini ? oData.ZET_lista_ordini.ImportoTot : 0,
+                    NumOrdine: oData.NumOrdine,
+                    StatoTxt: oData.ZET_lista_ordini ? oData.ZET_lista_ordini.StatoTxt : "",
+                    Articoli: aArticles
+                };
+
+                oDetailModel.setData(oCleanData);
+
+            } catch (oError) {
+                sap.ui.core.BusyIndicator.hide();
+                // Utilizziamo la gestione errori centralizzata del BaseController
+                this.handleBackendError(oError); 
+            }
         },
 
         onNavBack: function () {

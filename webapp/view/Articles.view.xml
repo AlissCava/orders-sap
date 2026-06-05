@@ -6,11 +6,11 @@
 
     <Page title="{i18n>articlesPageTitle}" showNavButton="true" navButtonPress=".onNavBack">
         <content>
-            <Table id="articlesTable" items="{/ZES_articoliSet}" class="myCustomCard">
+            <Table id="articlesTable" items="{/ZES_articoliSet}" class="myCustomCard" updateFinished=".onTableUpdateFinished">
             
             <headerToolbar>
                 <OverflowToolbar>
-                    <Title text="{i18n>articlesPageTitle}" />
+                    <Title id="articlesTableTitle" text="{i18n>articlesPageTitle}" />
                     <ToolbarSpacer />
                     
                     <SearchField 

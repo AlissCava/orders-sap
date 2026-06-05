@@ -16,6 +16,7 @@
                     
                 <headerToolbar>
                     <OverflowToolbar>
+                        <Title text="{summaryModel>/TableTitle}" level="H2" class="sapUiSmallMarginEnd" />
                         <SearchField id="searchField" width="200px" placeholder="{i18n>searchPlaceholder}" liveChange=".onSearch" />
                         
                         <Label text="{i18n>lblStatusFilter}" labelFor="statusFilter" class="sapUiTinyMarginEnd sapUiSmallMarginBegin" />

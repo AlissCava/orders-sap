@@ -45,16 +45,16 @@ sap.ui.define([
         // ========================================================================
         // 2. CARICAMENTO DATI
         // ========================================================================
-        _createEmptyForm: function () {
-            const that = this; // Salva il riferimento al controller per le funzioni interne (callback)
+        _createEmptyForm: async function () {
             sap.ui.core.BusyIndicator.show(0); // Mostra l'icona di caricamento e blocca l'interfaccia
 
-            // Interroga il servizio OData per trovare l'ultimo articolo inserito
-            this.odataRead("/ZES_articoliSet", {
-                "$orderby": "CodArticolo desc", // Ordina per codice in modo decrescente
-                "$top": 1                       // Prende solo il primo record (il più alto)
-            })
-            .then(function (oData) {
+            try {
+                // Interroga il servizio OData asincrono per trovare l'ultimo articolo inserito
+                const oData = await this.odataRead("/ZES_articoliSet", {
+                    "$orderby": "CodArticolo desc", // Ordina per codice in modo decrescente
+                    "$top": 1                       // Prende solo il primo record (il più alto)
+                });
+
                 sap.ui.core.BusyIndicator.hide(); // Nasconde l'icona di caricamento
                 let iNextCode = 1; // Default se la tabella fosse vuota
 
@@ -73,43 +73,42 @@ sap.ui.define([
                 };
                 
                 // Crea e assegna il modello "formModel" alla View per popolare i campi di input
-                that.setModel(new JSONModel(oEmptyArticle), "formModel");
-            })
-            .catch(function (oError) {
+                this.setModel(new JSONModel(oEmptyArticle), "formModel");
+
+            } catch (oError) {
                 sap.ui.core.BusyIndicator.hide(); // Nasconde il caricamento in caso di errore
-                that.handleBackendError(oError); // Gestisce l'errore tramite funzione centralizzata
-                that.onNavBack(); // Riporta l'utente alla pagina precedente
-            });
+                this.handleBackendError(oError); // Gestisce l'errore tramite funzione centralizzata
+                this.onNavBack(); // Riporta l'utente alla pagina precedente
+            }
         },
 
-        _loadArticleData: function (sArticleId) {
-            const that = this; // Salva il riferimento al controller
+        _loadArticleData: async function (sArticleId) {
             sap.ui.core.BusyIndicator.show(0); // Blocca l'interfaccia
             
             // Costruisce il percorso (path) OData per leggere il singolo record tramite ID
             const sPath = "/ZES_articoliSet(" + sArticleId + ")";
 
-            // Esegue la lettura dei dati dal server SAP
-            this.odataRead(sPath)
-            .then(function (oData) {
+            try {
+                // Esegue la lettura asincrona dei dati dal server SAP
+                const oData = await this.odataRead(sPath);
                 sap.ui.core.BusyIndicator.hide(); // Sblocca l'interfaccia
+                
                 // Carica i dati ricevuti nel modello "formModel" per mostrarli a video
-                that.setModel(new JSONModel(oData), "formModel");
-            })
-            .catch(function (oError) {
+                this.setModel(new JSONModel(oData), "formModel");
+
+            } catch (oError) {
                 sap.ui.core.BusyIndicator.hide(); // Sblocca l'interfaccia
-                that.handleBackendError(oError); // Mostra l'errore del server
-                that.onNavBack(); // Torna indietro
-            });
+                this.handleBackendError(oError); // Mostra l'errore del server
+                this.onNavBack(); // Torna indietro
+            }
         },
 
         // ========================================================================
         // 3. SALVATAGGIO
         // ========================================================================
-        onSave: function () {
+        onSave: async function () {
             const oFormModel = this.getModel("formModel"); // Recupera i dati inseriti dall'utente
             const oViewModel = this.getModel("viewModel"); // Recupera lo stato della view (new/edit)
-            const that = this; // Riferimento al controller
 
             const oData = oFormModel.getData(); // Estrae l'oggetto dati dal modello
             const bIsNew = oViewModel.getProperty("/isNew"); // Verifica se siamo in creazione
@@ -137,33 +136,26 @@ sap.ui.define([
 
             sap.ui.core.BusyIndicator.show(0); // Inizia l'animazione di caricamento
 
-            if (bIsNew) {
-                // Esegue una chiamata POST (creazione) al servizio OData
-                this.odataCreate("/ZES_articoliSet", oPayload)
-                .then(function () {
+            try {
+                if (bIsNew) {
+                    // Esegue una chiamata POST asincrona (creazione) al servizio OData
+                    await this.odataCreate("/ZES_articoliSet", oPayload);
                     sap.ui.core.BusyIndicator.hide(); // Fine caricamento
-                    MessageToast.show(that.getText("msgArticleCreated")); // Messaggio di successo
-                    that.getModel().refresh(true); // Forza l'aggiornamento della lista principale
-                    that.onNavBack(); // Torna alla lista
-                })
-                .catch(function (oError) {
+                    MessageToast.show(this.getText("msgArticleCreated")); // Messaggio di successo
+                } else {
+                    // Esegue una chiamata PUT/MERGE asincrona (aggiornamento) al servizio OData
+                    const sPath = "/ZES_articoliSet(" + oPayload.CodArticolo + ")";
+                    await this.odataUpdate(sPath, oPayload);
                     sap.ui.core.BusyIndicator.hide();
-                    that.handleBackendError(oError); // Gestione errore SAP
-                });
-            } else {
-                // Esegue una chiamata PUT/MERGE (aggiornamento) al servizio OData
-                const sPath = "/ZES_articoliSet(" + oPayload.CodArticolo + ")";
-                this.odataUpdate(sPath, oPayload)
-                .then(function () {
-                    sap.ui.core.BusyIndicator.hide();
-                    MessageToast.show(that.getText("msgArticleUpdated")); // Conferma modifica
-                    that.getModel().refresh(true); // Ricarica i dati
-                    that.onNavBack(); // Torna alla lista
-                })
-                .catch(function (oError) {
-                    sap.ui.core.BusyIndicator.hide();
-                    that.handleBackendError(oError);
-                });
+                    MessageToast.show(this.getText("msgArticleUpdated")); // Conferma modifica
+                }
+
+                this.getModel().refresh(true); // Forza l'aggiornamento della lista principale
+                this.onNavBack(); // Torna alla lista
+
+            } catch (oError) {
+                sap.ui.core.BusyIndicator.hide();
+                this.handleBackendError(oError); // Gestione errore SAP
             }
         },
 

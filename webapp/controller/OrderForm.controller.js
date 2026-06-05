@@ -52,7 +52,7 @@ sap.ui.define([
                 // Se è un nuovo ordine, inizializza un oggetto vuoto nel modello locale
                 this._createEmptyForm(); 
             } else {
-                // Se è un ordine esistente, chiama il backend per recuperare i dati
+                // Se è un ordine esistente, chiama il backend per recuperare i dati in modo asincrono
                 this._loadOrderData(sObjectId); 
             }
         },
@@ -78,61 +78,57 @@ sap.ui.define([
         },
 
         /**
-         * Recupera i dati dal server SAP eseguendo due letture sequenziali.
+         * Recupera i dati dal server SAP eseguendo due letture asincrone sequenziali.
          * @param {string} sOrderId ID dell'ordine da caricare.
          */
-        _loadOrderData: function (sOrderId) {
-            const oODataModel = this.getOwnerComponent().getModel(); // Ottiene il modello OData principale
-            const that = this; // Salva il riferimento al controller per le callback
-            
+        _loadOrderData: async function (sOrderId) {
             sap.ui.core.BusyIndicator.show(0); // Blocca l'interfaccia con un caricamento
             const iOrderId = parseInt(sOrderId, 10);
+            
+            // Array di filtri condiviso per entrambe le chiamate
+            const aFilters = [new Filter("NumOrdine", FilterOperator.EQ, iOrderId)];
 
-            // Prima Lettura: Recupero i dati di Testata (Cliente, Stato, etc.)
-            oODataModel.read("/ZES_lista_ordiniSet", {
-                filters: [new Filter("NumOrdine", FilterOperator.EQ, iOrderId)],
-                success: function (oHeaderResult) {
-                    // Controllo di sicurezza se l'array dei risultati è vuoto
-                    if (!oHeaderResult.results || oHeaderResult.results.length === 0) {
-                        sap.ui.core.BusyIndicator.hide();
-                        MessageBox.error(that.getText("msgErrorBackend"));
-                        that.onNavBack();
-                        return;
-                    }
-
-                    // Prepara l'oggetto finale partendo dai dati della testata
-                    const oHeaderData = oHeaderResult.results[0];
-                    const oOrderData = {
-                        NumOrdine: oHeaderData.NumOrdine,
-                        Cliente: oHeaderData.Cliente,
-                        StatoTxt: oHeaderData.StatoTxt,
-                        ImportoTot: oHeaderData.ImportoTot,
-                        Articoli: [] // Sarà popolato dalla seconda chiamata
-                    };
-
-                    // Seconda Lettura: Recupero i Dettagli (Articoli) associati all'ordine
-                    oODataModel.read("/ZES_dettagli_ordiniSet", {
-                        filters: [new Filter("NumOrdine", FilterOperator.EQ, iOrderId)],
-                        success: function (oItemsData) {
-                            sap.ui.core.BusyIndicator.hide(); // Operazione conclusa
-                            oOrderData.Articoli = oItemsData.results || [];
-                            // Carica tutti i dati (Testata + Articoli) nel modello JSON dedicato al form
-                            that.setModel(new JSONModel(oOrderData), "formModel");
-                        },
-                        error: function () {
-                            sap.ui.core.BusyIndicator.hide();
-                            MessageBox.warning("Articoli non caricati.");
-                            // Carica comunque la testata anche se i dettagli falliscono
-                            that.setModel(new JSONModel(oOrderData), "formModel");
-                        }
-                    });
-                },
-                error: function (oError) {
+            try {
+                // 1. Prima Lettura: Recupero i dati di Testata (Cliente, Stato, etc.)
+                const oHeaderResult = await this.odataRead("/ZES_lista_ordiniSet", { filters: aFilters });
+                
+                // Controllo di sicurezza se l'array dei risultati è vuoto
+                if (!oHeaderResult.results || oHeaderResult.results.length === 0) {
                     sap.ui.core.BusyIndicator.hide();
-                    that.handleBackendError(oError); // Gestione errore centralizzata
-                    that.onNavBack();
+                    MessageBox.error(this.getText("msgErrorBackend"));
+                    this.onNavBack();
+                    return;
                 }
-            });
+
+                // Prepara l'oggetto finale partendo dai dati della testata
+                const oHeaderData = oHeaderResult.results[0];
+                const oOrderData = {
+                    NumOrdine: oHeaderData.NumOrdine,
+                    Cliente: oHeaderData.Cliente,
+                    StatoTxt: oHeaderData.StatoTxt,
+                    ImportoTot: oHeaderData.ImportoTot,
+                    Articoli: [] // Sarà popolato dalla seconda chiamata
+                };
+
+                try {
+                    // 2. Seconda Lettura: Recupero i Dettagli (Articoli) associati all'ordine
+                    const oItemsData = await this.odataRead("/ZES_dettagli_ordiniSet", { filters: aFilters });
+                    oOrderData.Articoli = oItemsData.results || [];
+                } catch (oItemError) {
+                    // Se gli articoli falliscono ma l'ordine esiste, avvisiamo senza bloccare
+                    MessageBox.warning("Articoli non caricati.");
+                }
+
+                // Carica tutti i dati (Testata + Articoli) nel modello JSON dedicato al form
+                this.setModel(new JSONModel(oOrderData), "formModel");
+
+            } catch (oError) {
+                // Se la lettura della testata fallisce, mostra l'errore ed esce
+                this.handleBackendError(oError); 
+                this.onNavBack();
+            } finally {
+                sap.ui.core.BusyIndicator.hide(); // Operazione conclusa in ogni caso
+            }
         },
 
         // ========================================================================
@@ -142,21 +138,24 @@ sap.ui.define([
         /**
          * Apre il popup per l'inserimento di un nuovo articolo.
          */
-        onAddArticleToOrder: function () {
+        onAddArticleToOrder: async function () {
             const oView = this.getView();
 
             // Verifica se il Fragment esiste già in memoria per non ricrearlo inutilmente (Performance)
             if (!this.byId("articleDialog")) {
-                Fragment.load({
+                
+                // Usiamo await per il caricamento del fragment XML
+                const oDialog = await Fragment.load({
                     id: oView.getId(), // ID della vista per permettere l'uso di this.byId() dentro il fragment
                     name: "orders.view.AddArticleDialog", // Percorso del file XML del Fragment
                     controller: this // Collega le azioni del fragment a questo controller
-                }).then(function (oDialog) {
-                    // Collega il ciclo di vita del Dialog alla Vista (eredita modelli e traduzioni)
-                    oView.addDependent(oDialog);
-                    this._clearDialogFields();
-                    oDialog.open();
-                }.bind(this)); // .bind(this) assicura che all'interno della Promise 'this' sia il controller
+                });
+                
+                // Collega il ciclo di vita del Dialog alla Vista (eredita modelli e traduzioni)
+                oView.addDependent(oDialog);
+                this._clearDialogFields();
+                oDialog.open();
+
             } else {
                 // Se esiste già, resetta i campi e lo apre direttamente
                 this._clearDialogFields();
@@ -246,10 +245,9 @@ sap.ui.define([
         /**
          * Prepara il payload complesso e invia tutto a SAP in un'unica transazione.
          */
-        onSave: function () {
+        onSave: async function () {
             const oFormModel = this.getModel("formModel");
             const oViewModel = this.getModel("viewModel");
-            const that = this;
 
             const oFormData = oFormModel.getData();
             const bIsNew = oViewModel.getProperty("/isNew");
@@ -308,17 +306,18 @@ sap.ui.define([
 
             sap.ui.core.BusyIndicator.show(0);
 
-            // 4. DELEGHIAMO AL PADRE! Usiamo la Promise odataCreate per il Deep Insert
-            this.odataCreate("/ZES_DeepOrdiniSet", oDeepPayload)
-            .then(function () {
+            try {
+                // 4. DELEGHIAMO AL PADRE! Usiamo la Promise odataCreate asincrona per il Deep Insert
+                await this.odataCreate("/ZES_DeepOrdiniSet", oDeepPayload);
+                
                 sap.ui.core.BusyIndicator.hide();
                 
                 // 1. Messaggio fisso ultra-sicuro
                 MessageToast.show("Ordine salvato con successo!"); 
                 
                 // 2. Aggiornamento del modello globale forzato
-                if (that.getOwnerComponent().getModel()) {
-                    that.getOwnerComponent().getModel().refresh(true); 
+                if (this.getOwnerComponent().getModel()) {
+                    this.getOwnerComponent().getModel().refresh(true); 
                 }
                 
                 // 3. Navigazione manuale e sicura alla pagina precedente
@@ -329,15 +328,14 @@ sap.ui.define([
                     // Se c'è una cronologia, simula il tasto "Indietro" del browser
                     window.history.go(-1);
                 } else {
-                    // Altrimenti naviga esplicitamente alla Home (controlla che si chiami "TargetHome" o "RouteHome" nel tuo manifest)
-                    that.getRouter().navTo("TargetHome", {}, true); 
+                    // Altrimenti naviga esplicitamente alla Home
+                    this.getRouter().navTo("TargetHome", {}, true); 
                 }
-            })
-            
-            .catch(function (oError) {
+                
+            } catch (oError) {
                 sap.ui.core.BusyIndicator.hide();
-                that.handleBackendError(oError); 
-            });
+                this.handleBackendError(oError); 
+            }
         },
 
         /**

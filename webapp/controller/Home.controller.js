@@ -103,13 +103,16 @@ sap.ui.define([
                 // Scriviamo i nuovi calcoli nel modello. La vista XML si aggiornerà all'istante da sola.
                 oSummaryModel.setProperty("/TotalCount", iTotalCount);
                 oSummaryModel.setProperty("/TotalValue", fTotalValue.toFixed(2)); // toFixed(2) forza i due decimali (es. 10.50)
+                
+                // Generiamo il titolo formattato con il conteggio reale dei record attivi
+                oSummaryModel.setProperty("/TableTitle", "Ordini (" + iTotalCount + ")");
             }
         },
 
         // ========================================================================
         // EXPORT EXCEL
         // ========================================================================
-        onExport: function () {
+        onExport: async function () {
             // Recupera il file i18n.properties per usare le traduzioni corrette per le intestazioni
             const oBundle = this.getResourceBundle();
             const that = this; // Salviamo il riferimento al controller per poter chiamare il formatter
@@ -119,7 +122,6 @@ sap.ui.define([
                 { label: oBundle.getText("colOrderID"), property: "NumOrdine", type: "number" },
                 { label: oBundle.getText("colCustomer"), property: "Cliente", type: "string" },
                 { label: oBundle.getText("colOrderDate"), property: "DataOrdine", type: "date", format: "dd/MM/yyyy" },
-                // FIX: Cambiamo in stringa e puntiamo a una nuova proprietà formattata
                 { label: oBundle.getText("colTotalAmount"), property: "ImportoFormattato", type: "string" },
                 { label: oBundle.getText("colStatus"), property: "StatoTxt", type: "string" }
             ];
@@ -128,7 +130,7 @@ sap.ui.define([
             const oTable = this.byId("ordersTable");
             const aContexts = oTable.getBinding("items").getContexts();
             
-            // "Srotola" i contesti complexes di UI5 in semplici oggetti Javascript leggibili dalla libreria Excel
+            // "Srotola" i contesti complessi di UI5 in semplici oggetti Javascript leggibili dalla libreria Excel
             const aData = aContexts.map(function (oContext) {
                 const oRow = oContext.getObject();
                 
@@ -148,11 +150,16 @@ sap.ui.define([
                 fileName: "Orders_Export.xlsx"
             };
 
-            // Avvia la creazione del file e libera la memoria (destroy) appena il download è partito
+            // Crea l'oggetto per generare l'Excel
             const oSheet = new Spreadsheet(oSettings);
-            oSheet.build().finally(function () {
+            
+            try {
+                // Avvia la creazione del file in modo asincrono
+                await oSheet.build();
+            } finally {
+                // Libera la memoria (destroy) appena il download è partito o se c'è un errore
                 oSheet.destroy(); 
-            });
+            }
         },
 
         // ========================================================================
@@ -200,7 +207,7 @@ sap.ui.define([
         // SOFT DELETE (ARCHIVIAZIONE CON WORKAROUND LOCALE)
         // ========================================================================
         onDeleteOrder: function (oEvent) {
-            // FIX: Catturiamo il contesto dal nuovo bottone personalizzato invece che dalla listItem
+            // Catturiamo il contesto dal bottone personalizzato
             const oContext = oEvent.getSource().getBindingContext();
             const oRowData = oContext.getObject(); 
             const that = this; 
@@ -210,7 +217,8 @@ sap.ui.define([
                 title: this.getText("appTitle"),
                 actions: [MessageBox.Action.YES, MessageBox.Action.NO],
                 
-                onClose: function (sAction) {
+                // Rendiamo la chiusura asincrona
+                onClose: async function (sAction) {
                     if (sAction === MessageBox.Action.YES) {
                         sap.ui.core.BusyIndicator.show(0); 
                         
@@ -228,9 +236,10 @@ sap.ui.define([
                             "ZET_dettagli_ordiniSet": [] 
                         };
 
-                        // Spediamo la richiesta al server SAP
-                        that.odataCreate("/ZES_DeepOrdiniSet", oUpdatePayload)
-                        .then(function () {
+                        try {
+                            // Spediamo la richiesta al server SAP usando await
+                            await that.odataCreate("/ZES_DeepOrdiniSet", oUpdatePayload);
+                            
                             sap.ui.core.BusyIndicator.hide(); 
                             MessageToast.show("Ordine archiviato con successo"); 
                             
@@ -242,11 +251,11 @@ sap.ui.define([
                             
                             // Ricalcoliamo i totali in basso (che ora escluderanno la riga appena cancellata)
                             that._calculateTotal();
-                        })
-                        .catch(function (oError) {
+
+                        } catch (oError) {
                             sap.ui.core.BusyIndicator.hide(); 
                             that.handleBackendError(oError); 
-                        });
+                        }
                     }
                 }
             });

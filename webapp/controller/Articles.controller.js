@@ -1,9 +1,11 @@
 sap.ui.define([
     "orders/controller/BaseController", 
-    "sap/m/MessageToast",               
+    "sap/m/MessageToast",              
     "sap/m/MessageBox",                 
-    "sap/ui/export/Spreadsheet"         // Importa la libreria SAP standard per generare file Excel
-], function (BaseController, MessageToast, MessageBox, Spreadsheet) { 
+    "sap/ui/export/Spreadsheet",
+    "sap/ui/model/Filter",              // FIX: Iniettato filtro mancante
+    "sap/ui/model/FilterOperator"       // FIX: Iniettato operatore mancante
+], function (BaseController, MessageToast, MessageBox, Spreadsheet, Filter, FilterOperator) { 
     "use strict";
 
     return BaseController.extend("orders.controller.Articles", {
@@ -61,23 +63,22 @@ sap.ui.define([
             MessageBox.confirm(this.getText("msgDeleteConfirm"), {
                 title: this.getText("appTitle"),
                 actions: [MessageBox.Action.YES, MessageBox.Action.NO], // Pulsanti Sì/No
-                onClose: function (sAction) {
-                    // Se l'utente conferma cliccando su "YES"
+                
+                // Rendiamo la funzione di callback asincrona per poter usare await
+                onClose: async function (sAction) {
                     if (sAction === MessageBox.Action.YES) {
                         sap.ui.core.BusyIndicator.show(0); // Blocca l'interfaccia
 
-                        // Chiama il metodo DELETE definito nel BaseController
-                        that.odataDelete(sPath)
-                        .then(function () {
+                        try {
+                            // Chiama il metodo DELETE in modo asincrono
+                            await that.odataDelete(sPath);
                             sap.ui.core.BusyIndicator.hide(); // Sblocca l'interfaccia
-                            // Mostra un messaggio di avvenuta eliminazione
                             MessageToast.show(that.getText("msgArticleDeleted"));
-                        })
-                        .catch(function (oError) {
+                        } catch (oError) {
                             sap.ui.core.BusyIndicator.hide();
-                            // In caso di errore (es: vincoli a DB), lo gestisce in modo centralizzato
+                            // In caso di errore lo gestisce in modo centralizzato
                             that.handleBackendError(oError); 
-                        });
+                        }
                     }
                 }
             });
@@ -88,7 +89,7 @@ sap.ui.define([
         // ========================================================================
         
         // Genera un file Excel basato sui dati attualmente visibili in tabella
-        onExportExcel: function () {
+        onExportExcel: async function () {
             // Recupera l'istanza della tabella tramite il suo ID
             const oTable = this.byId("articlesTable"); 
             // Ottiene il binding degli elementi (i dati caricati dal server)
@@ -113,11 +114,14 @@ sap.ui.define([
 
             // Crea un nuovo oggetto Spreadsheet con le impostazioni definite
             const oSheet = new Spreadsheet(oSettings);
-            // Avvia la generazione del file e assicura la pulizia della memoria alla fine
-            oSheet.build().finally(function() {
-                oSheet.destroy(); // Distrugge l'oggetto per liberare risorse RAM
-            });
             
+            try {
+                // Avvia la generazione del file in modo asincrono
+                await oSheet.build();
+            } finally {
+                // Assicura la pulizia della memoria in ogni caso (sia successo che errore)
+                oSheet.destroy(); 
+            }
         },
         
         // ========================================================================
@@ -143,5 +147,25 @@ sap.ui.define([
             const oBinding = oTable.getBinding("items");
             oBinding.filter(aFilters);
         },
+
+        // ========================================================================
+        // CONTEGGIO DINAMICO RECORD TITOLO
+        // ========================================================================
+        onTableUpdateFinished: function (oEvent) {
+            // Recupera il totale dei record restituiti dal backend OData per questa tabella
+            const iTotalItems = oEvent.getParameter("total");
+            
+            // Ottiene il riferimento al controllo del titolo nella toolbar
+            const oTitle = this.byId("articlesTableTitle");
+            
+            if (oTitle) {
+                const oBundle = this.getResourceBundle();
+                // Recupera il testo base tradotto (es. "Gestione Articoli" o "Articoli")
+                const sBaseTitle = oBundle ? oBundle.getText("articlesPageTitle") : "Articoli";
+                
+                // Aggiorna il titolo aggiungendo il contatore dinamico
+                oTitle.setText(sBaseTitle + " (" + iTotalItems + ")");
+            }
+        }
     });
 });
