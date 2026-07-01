@@ -9,6 +9,7 @@
         <content>
             <Table  id="ordersTable" 
                     class="myCustomCard"
+                    ariaLabelledBy="tableTitle"
                     items="{/ZES_lista_ordiniSet}" 
                     updateFinished=".onTableUpdateFinished" 
                     growing="true" 
@@ -16,11 +17,12 @@
                     
                 <headerToolbar>
                     <OverflowToolbar>
-                        <Title text="{summaryModel>/TableTitle}" level="H2" class="sapUiSmallMarginEnd" />
-                        <SearchField id="searchField" width="200px" placeholder="{i18n>searchPlaceholder}" liveChange=".onSearch" />
+                        <Title id="tableTitle" text="{summaryModel>/TableTitle}" level="H2" class="sapUiSmallMarginEnd" />
                         
-                        <Label text="{i18n>lblStatusFilter}" labelFor="statusFilter" class="sapUiTinyMarginEnd sapUiSmallMarginBegin" />
-                        <Select id="statusFilter" change=".onSearch" forceSelection="false" width="180px">
+                        <SearchField id="searchField" width="200px" placeholder="{i18n>searchPlaceholder}" tooltip="{i18n>searchPlaceholder}" liveChange=".onSearch" />
+                        
+                        <Label id="lblStatus" text="{i18n>lblStatusFilter}" labelFor="statusFilter" class="sapUiTinyMarginEnd sapUiSmallMarginBegin" />
+                        <Select id="statusFilter" ariaLabelledBy="lblStatus" change=".onSearch" forceSelection="false" width="180px">
                             <core:Item key="" text="{i18n>statusAll}" />
                             <core:Item key="1" text="{i18n>statusCreated}" /> 
                             <core:Item key="2" text="{i18n>statusProcessing}" />
@@ -28,8 +30,8 @@
                             <core:Item key="4" text="{i18n>statusClosed}" />
                         </Select>
 
-                        <Label text="Periodo:" labelFor="dateFilter" class="sapUiTinyMarginEnd sapUiSmallMarginBegin" />
-                        <DateRangeSelection id="dateFilter" change=".onSearch" displayFormat="dd/MM/yyyy" width="220px" />
+                        <Label id="lblDate" text="Periodo:" labelFor="dateFilter" class="sapUiTinyMarginEnd sapUiSmallMarginBegin" />
+                        <DateRangeSelection id="dateFilter" ariaLabelledBy="lblDate" change=".onSearch" displayFormat="dd/MM/yyyy" width="220px" />
                         
                         <ToolbarSpacer />
                         
@@ -40,13 +42,13 @@
                 </headerToolbar>
                 
                 <columns>
-                    <Column><Text text="{i18n>colOrderID}" /></Column>
-                    <Column><Text text="{i18n>colCustomer}" /></Column>
-                    <Column><Text text="{i18n>colOrderDate}" /></Column> 
-                    <Column hAlign="End"><Text text="{i18n>colTotalAmount}" /></Column>
-                    <Column><Text text="{i18n>colStatus}" /></Column>
+                    <Column><Text id="colNum" text="{i18n>colOrderID}" /></Column>
+                    <Column><Text id="colCli" text="{i18n>colCustomer}" /></Column>
+                    <Column><Text id="colDat" text="{i18n>colOrderDate}" /></Column> 
+                    <Column hAlign="End"><Text id="colImp" text="{i18n>colTotalAmount}" /></Column>
+                    <Column><Text id="colSta" text="{i18n>colStatus}" /></Column>
                     
-                    <Column width="3rem" hAlign="Center"></Column>
+                    <Column width="3rem" hAlign="Center"><Text text="Azioni" visible="false" /></Column>
                 </columns>
 
                 <items>
@@ -67,7 +69,7 @@
                                 state="{ path: 'StatoTxt', formatter: '.formatter.statusState' }" 
                                 icon="{ path: 'StatoTxt', formatter: '.formatter.statusIcon' }" />
                                 
-                            <Button icon="sap-icon://delete" type="Transparent" press=".onDeleteOrder" tooltip="Elimina Ordine" />
+                            <Button icon="sap-icon://delete" type="Transparent" press=".onDeleteOrder" tooltip="Elimina Ordine {NumOrdine}" ariaLabel="Elimina Ordine {NumOrdine}" />
                         </cells>
                     </ColumnListItem>
                 </items>
@@ -75,8 +77,8 @@
             
             <VBox class="myCustomCard sapUiSmallMargin" alignItems="End">
                 <HBox alignItems="Center" justifyContent="End" width="100%">
-                    <Label text="{i18n>lblTotalValue}:" design="Bold" class="sapUiSmallMarginEnd" />
-                    <ObjectNumber number="{ path: 'summaryModel>/TotalValue', formatter: '.formatter.currencyValue' }" state="Success" />
+                    <Label id="lblTotale" text="{i18n>lblTotalValue}:" design="Bold" class="sapUiSmallMarginEnd" />
+                    <ObjectNumber ariaLabelledBy="lblTotale" number="{ path: 'summaryModel>/TotalValue', formatter: '.formatter.currencyValue' }" state="Success" />
                 </HBox>
             </VBox>
         </content>

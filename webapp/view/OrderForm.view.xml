@@ -18,21 +18,22 @@
                     title="{i18n>mainDataTitle}" 
                     columnsM="2" columnsL="2" columnsXL="2">
                     <f:content>
-                        <Label text="{i18n>colOrderID}" />
-                        <Input value="{formModel>/NumOrdine}" editable="false" />
-                        <Label text="{i18n>colCustomer}" required="true"/>
-                        <Input value="{formModel>/Cliente}" placeholder="{i18n>placeholderCustomer}" />
+                        <Label id="lblNumOrdine" text="{i18n>colOrderID}" />
+                        <Input ariaLabelledBy="lblNumOrdine" value="{formModel>/NumOrdine}" editable="false" />
+                        
+                        <Label id="lblCliente" text="{i18n>colCustomer}" required="true"/>
+                        <Input ariaLabelledBy="lblCliente" value="{formModel>/Cliente}" placeholder="{i18n>placeholderCustomer}" />
 
-                        <Label text="{i18n>colStatus}" />
-                        <Select selectedKey="{formModel>/Stato}">
+                        <Label id="lblStato" text="{i18n>colStatus}" />
+                        <Select ariaLabelledBy="lblStato" selectedKey="{formModel>/Stato}">
                             <core:Item key="1" text="{i18n>statusCreated}" /> 
                             <core:Item key="2" text="{i18n>statusProcessing}" />
                             <core:Item key="3" text="{i18n>statusTransit}" />
                             <core:Item key="4" text="{i18n>statusClosed}" />
                         </Select>
 
-                        <Label text="{i18n>colTotalAmount}" />
-                        <Input value="{formModel>/ImportoTot}" type="Number" description="€" editable="false" />
+                        <Label id="lblImporto" text="{i18n>colTotalAmount}" />
+                        <Input ariaLabelledBy="lblImporto" value="{formModel>/ImportoTot}" type="Number" description="€" editable="false" />
                     </f:content>
                 </f:SimpleForm>
 
@@ -49,21 +50,21 @@
                         <Button icon="sap-icon://add" text="{i18n>btnNewArticle}" type="Emphasized" press=".onAddArticleToOrder" />
                     </Toolbar>
                 </headerToolbar>
+                
                 <columns>
-                    <Column width="20%"><Text text="{i18n>colArticleCode}"/></Column>
-                    <Column width="40%"><Text text="{i18n>colArticleName}"/></Column>
-                    
-                    <Column width="20%" hAlign="End"><Text text="{i18n>colQuantity}"/></Column>
-                    <Column width="20%" hAlign="End"><Text text="{i18n>colPrice}"/></Column>
+                    <Column width="20%"><Text id="colHeaderCode" text="{i18n>colArticleCode}"/></Column>
+                    <Column width="40%"><Text id="colHeaderName" text="{i18n>colArticleName}"/></Column>
+                    <Column width="20%" hAlign="End"><Text id="colHeaderQty" text="{i18n>colQuantity}"/></Column>
+                    <Column width="20%" hAlign="End"><Text id="colHeaderPrice" text="{i18n>colPrice}"/></Column>
                 </columns>
+                
                 <items>
                     <ColumnListItem>
                         <cells>
-                            <Input value="{formModel>CodArticolo}" />
-                            <Input value="{formModel>NomeArticolo}" />
-                            
-                            <Input value="{formModel>QuantitaOrdine}" type="Number" textAlign="End" />
-                            <Input value="{formModel>Importo}" type="Number" textAlign="End" />
+                            <Input ariaLabelledBy="colHeaderCode" value="{formModel>CodArticolo}" />
+                            <Input ariaLabelledBy="colHeaderName" value="{formModel>NomeArticolo}" />
+                            <Input ariaLabelledBy="colHeaderQty" value="{formModel>QuantitaOrdine}" type="Number" textAlign="End" />
+                            <Input ariaLabelledBy="colHeaderPrice" value="{formModel>Importo}" type="Number" textAlign="End" />
                         </cells>
                     </ColumnListItem>
                 </items>
