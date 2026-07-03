@@ -100,6 +100,16 @@ sap.ui.define([
       });
     },
 
+      setInitialFocus: function (sControlId) {
+      // Usiamo un piccolo timeout per assicurarci che la vista sia renderizzata
+      setTimeout(() => {
+          const oControl = this.byId(sControlId);
+          if (oControl && typeof oControl.focus === "function") {
+              oControl.focus();
+          }
+      }, 100);
+    },
+
     // ========================================================================
     // 2. CREAZIONE (POST) - Invia un nuovo record al database SAP.
     // sPath: il nome della tabella in cui scrivere (es. "/ZES_articoliSet")
@@ -223,4 +233,5 @@ sap.ui.define([
     }
 
   });
+  
 });

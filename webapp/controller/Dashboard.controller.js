@@ -63,6 +63,8 @@ sap.ui.define([
                 // Gestione dell'errore (puoi usare la tua funzione handleBackendError se vuoi un log più dettagliato)
                 MessageToast.show("Errore nel caricamento dei dati dal server SAP.");
             }
+
+            this.setInitialFocus("inputCliente");
         }
     });
 });

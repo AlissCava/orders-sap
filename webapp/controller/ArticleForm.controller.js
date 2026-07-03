@@ -7,6 +7,7 @@ sap.ui.define([
     "use strict"; // Attiva il controllo rigoroso del codice JS
 
     return BaseController.extend("orders.controller.ArticleForm", {
+        
 
         // ========================================================================
         // 1. INIZIALIZZAZIONE E GESTIONE URL
@@ -40,6 +41,8 @@ sap.ui.define([
             } else {
                 this._loadArticleData(sObjectId); // Logica per modifica articolo esistente
             }
+
+            this.setInitialFocus("inputCliente");
         },
 
         // ========================================================================

@@ -55,6 +55,7 @@ sap.ui.define([
                 // Se è un ordine esistente, chiama il backend per recuperare i dati in modo asincrono
                 this._loadOrderData(sObjectId); 
             }
+            this.setInitialFocus("inputCliente");
         },
 
         // ========================================================================
