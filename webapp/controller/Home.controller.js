@@ -7,6 +7,8 @@ sap.ui.define([
     "sap/m/MessageBox",                 
     "sap/m/MessageToast",
     "sap/ui/model/Sorter",
+    "sap/ui/core/InvisibleMessage", 
+    "sap/ui/core/library",
     "orders/model/formatter"              
 ], function (BaseController, Spreadsheet, Filter, FilterOperator, JSONModel, MessageBox, MessageToast, Sorter, formatter) {
     "use strict";
@@ -241,10 +243,17 @@ sap.ui.define([
                             await that.odataCreate("/ZES_DeepOrdiniSet", oUpdatePayload);
                             
                             sap.ui.core.BusyIndicator.hide(); 
+                            
+                            // --- INIZIO MAGIA A11Y ---
+                            // Mostri il messaggio visivo per i vedenti
                             MessageToast.show("Ordine archiviato con successo"); 
                             
-                            // WORKAROUND: Siccome il backend non esegue la COMMIT WORK, se chiediamo
-                            // un refresh al server ci rimanderà i dati vecchi. Quindi "forziamo" la UI locale:
+                            // Fai l'annuncio vocale per lo screen reader (sostituisci il vecchio MessageToast)
+                            var oInvisibleMessage = sap.ui.core.InvisibleMessage.getInstance();
+                            oInvisibleMessage.announce("Ordine archiviato con successo", sap.ui.core.InvisibleMessageMode.Assertive);
+                            // --- FINE MAGIA A11Y ---
+                            
+                            // WORKAROUND: Siccome il backend non esegue la COMMIT WORK...
                             const sPath = oContext.getPath();
                             that.getModel().setProperty(sPath + "/StatoTxt", "Cancellato");
                             that.getModel().setProperty(sPath + "/Stato", 4);
@@ -260,7 +269,7 @@ sap.ui.define([
                 }
             });
         },
-
+        
         // ========================================================================
         // GESTIONE ORDINAMENTO MULTIPLO (SORT VIA DIALOG)
         // ========================================================================

@@ -4,7 +4,10 @@ sap.ui.define([
     "sap/m/MessageBox",                 
     "sap/ui/export/Spreadsheet",
     "sap/ui/model/Filter",              // FIX: Iniettato filtro mancante
-    "sap/ui/model/FilterOperator"       // FIX: Iniettato operatore mancante
+    "sap/ui/model/FilterOperator",      // FIX: Iniettato operatore mancante
+    "sap/ui/core/InvisibleMessage", 
+    "sap/ui/core/library",
+
 ], function (BaseController, MessageToast, MessageBox, Spreadsheet, Filter, FilterOperator) { 
     "use strict";
 
@@ -38,52 +41,64 @@ sap.ui.define([
             });
         },
 
-        // ========================================================================
-        // ELIMINAZIONE
-        // ========================================================================
+       // ========================================================================
+    // ELIMINAZIONE
+    // ========================================================================
+
+    // Gestisce l'eliminazione di un articolo
+    onDeleteArticle: function (oEvent) {
+        let oContext;
         
-        // Gestisce l'eliminazione di un articolo
-        onDeleteArticle: function (oEvent) {
-            let oContext;
-            
-            // Verifica la provenienza dell'evento (pressione riga o pulsante specifico)
-            if (oEvent.getParameter("listItem")) {
-                // Se l'evento è "delete" della lista, prende l'item dai parametri
-                oContext = oEvent.getParameter("listItem").getBindingContext();
-            } else {
-                // Altrimenti prende il contesto direttamente dal pulsante cliccato
-                oContext = oEvent.getSource().getBindingContext();
-            }
-            
-            // Ottiene il path OData relativo all'articolo (es: /ZES_articoliSet(10))
-            const sPath = oContext.getPath(); 
-            const that = this; // Riferimento al controller per le callback
+        // Verifica la provenienza dell'evento (pressione riga o pulsante specifico)
+        if (oEvent.getParameter("listItem")) {
+            // Se l'evento è "delete" della lista, prende l'item dai parametri
+            oContext = oEvent.getParameter("listItem").getBindingContext();
+        } else {
+            // Altrimenti prende il contesto direttamente dal pulsante cliccato
+            oContext = oEvent.getSource().getBindingContext();
+        }
+        
+        // Ottiene il path OData relativo all'articolo (es: /ZES_articoliSet(10))
+        const sPath = oContext.getPath(); 
+        const that = this; // Riferimento al controller per le callback
 
-            // Mostra un popup di conferma prima di procedere
-            MessageBox.confirm(this.getText("msgDeleteConfirm"), {
-                title: this.getText("appTitle"),
-                actions: [MessageBox.Action.YES, MessageBox.Action.NO], // Pulsanti Sì/No
-                
-                // Rendiamo la funzione di callback asincrona per poter usare await
-                onClose: async function (sAction) {
-                    if (sAction === MessageBox.Action.YES) {
-                        sap.ui.core.BusyIndicator.show(0); // Blocca l'interfaccia
+        // Mostra un popup di conferma prima di procedere
+        MessageBox.confirm(this.getText("msgDeleteConfirm"), {
+            title: this.getText("appTitle"),
+            actions: [MessageBox.Action.YES, MessageBox.Action.NO], // Pulsanti Sì/No
+            
+            // Rendiamo la funzione di callback asincrona per poter usare await
+            onClose: async function (sAction) {
+                if (sAction === MessageBox.Action.YES) {
+                    sap.ui.core.BusyIndicator.show(0); // Blocca l'interfaccia
 
-                        try {
-                            // Chiama il metodo DELETE in modo asincrono
-                            await that.odataDelete(sPath);
-                            sap.ui.core.BusyIndicator.hide(); // Sblocca l'interfaccia
-                            MessageToast.show(that.getText("msgArticleDeleted"));
-                        } catch (oError) {
-                            sap.ui.core.BusyIndicator.hide();
-                            // In caso di errore lo gestisce in modo centralizzato
-                            that.handleBackendError(oError); 
-                        }
+                    try {
+                        // Chiama il metodo DELETE in modo asincrono
+                        await that.odataDelete(sPath);
+                        
+                        sap.ui.core.BusyIndicator.hide(); // Sblocca l'interfaccia
+                        
+                        // --- INIZIO MAGIA A11Y ---
+                        // Recuperiamo il testo tradotto una sola volta
+                        const sMessage = that.getText("msgArticleDeleted");
+                        
+                        // Messaggio visivo per i vedenti
+                        MessageToast.show(sMessage);
+                        
+                        // Annuncio vocale per lo screen reader in modalità Assertive
+                        var oInvisibleMessage = sap.ui.core.InvisibleMessage.getInstance();
+                        oInvisibleMessage.announce(sMessage, sap.ui.core.InvisibleMessageMode.Assertive);
+                        // --- FINE MAGIA A11Y ---
+                        
+                    } catch (oError) {
+                        sap.ui.core.BusyIndicator.hide();
+                        // In caso di errore lo gestisce in modo centralizzato
+                        that.handleBackendError(oError); 
                     }
                 }
-            });
+            }
+        });
         },
-
         // ========================================================================
         // EXPORT EXCEL
         // ========================================================================
