@@ -10,12 +10,27 @@ sap.ui.define([
     "sap/ui/core/InvisibleMessage", 
     "sap/ui/core/library",
     "orders/model/formatter"              
-], function (BaseController, Spreadsheet, Filter, FilterOperator, JSONModel, MessageBox, MessageToast, Sorter, formatter) {
+], function (
+    BaseController, 
+    Spreadsheet, 
+    Filter, 
+    FilterOperator, 
+    JSONModel, 
+    MessageBox, 
+    MessageToast, 
+    Sorter, 
+    InvisibleMessage, 
+    coreLibrary, 
+    formatter
+) {
     "use strict";
+
+   // Ora coreLibrary è definita correttamente e non farà più crashare l'app!
+    var InvisibleMessageMode = coreLibrary.InvisibleMessageMode;
 
     return BaseController.extend("orders.controller.Home", {
 
-        // Collega il file dei formatter alla vista, essenziale per i colori degli stati e la valuta
+        // Collega il file dei formatter alla vista
         formatter: formatter,
 
         onInit: function () {
@@ -25,8 +40,7 @@ sap.ui.define([
                 TotalValue: 0.00 // Inizializza la somma in euro a zero
             });
             
-            // Assegna il modello alla vista nominandolo "summaryModel", 
-            // così la vista XML sa esattamente dove andare a leggere questi numeri
+            // LA RIGA CORRETTA E PULITA
             this.setModel(oSummaryModel, "summaryModel");
         },
 
