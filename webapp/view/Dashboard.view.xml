@@ -83,6 +83,47 @@
                 </viz:VizFrame>
             </VBox>
 
+            <!-- SECONDO GRAFICO: Colonne (Ordini per Cliente) -->
+            <VBox class="myCustomCard sapUiSmallMargin">
+                <Title text="Classifica Ordini per Cliente" level="H2" class="sapUiSmallMargin"/>
+                <viz:VizFrame 
+                    id="customerChart" 
+                    uiConfig="{applicationSet:'fiori'}"
+                    height="350px" width="100%" 
+                    vizType="column"
+                    vizProperties="{
+                        title: { visible: false },
+                        plotArea: {
+                            colorPalette: ['#1976d2'],
+                            dataLabel: { 
+                                visible: true,
+                                style: { fontWeight: 'bold' }
+                            }
+                        },
+                        legend: { visible: false },
+                        valueAxis: { title: { visible: false } },
+                        categoryAxis: { title: { visible: false } }
+                    }">
+                    
+                    <viz:dataset>
+                        <viz.data:FlattenedDataset data="{statsModel>/Customers}">
+                            <viz.data:dimensions>
+                                <viz.data:DimensionDefinition name="Cliente" value="{statsModel>label}" />
+                            </viz.data:dimensions>
+                            <viz.data:measures>
+                                <viz.data:MeasureDefinition name="Numero Ordini" value="{statsModel>value}" />
+                            </viz.data:measures>
+                        </viz.data:FlattenedDataset>
+                    </viz:dataset>
+
+                    <viz:feeds>
+                        <!-- Nei grafici a colonne, 'size' e 'color' diventano 'valueAxis' e 'categoryAxis' -->
+                        <viz.feeds:FeedItem uid="valueAxis" type="Measure" values="Numero Ordini" />
+                        <viz.feeds:FeedItem uid="categoryAxis" type="Dimension" values="Cliente" />
+                    </viz:feeds>
+                </viz:VizFrame>
+            </VBox>
+
         </layout:Grid>
     </Page>
 </mvc:View>
