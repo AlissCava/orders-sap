@@ -27,6 +27,10 @@ sap.ui.define([
             // Ottiene il router e si registra all'evento "patternMatched" della route specifica.
             // Questo permette di eseguire logica ogni volta che l'utente atterra su questa pagina.
             this.getRouter().getRoute("RouteOrderForm").attachPatternMatched(this._onRouteMatched, this);
+            this.attachKeyboardShortcuts(
+                this.onSave ? this.onSave.bind(this) : null,
+                this.onCancel ? this.onCancel.bind(this) : null
+    );
         },
 
         /**

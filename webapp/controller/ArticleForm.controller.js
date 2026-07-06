@@ -16,6 +16,10 @@ sap.ui.define([
             // Aggancia una funzione all'evento "patternMatched" della rotta 'RouteArticleForm'
             // Ogni volta che l'URL cambia e corrisponde a questa rotta, viene eseguito _onRouteMatched
             this.getRouter().getRoute("RouteArticleForm").attachPatternMatched(this._onRouteMatched, this);
+            this.attachKeyboardShortcuts(
+                this.onSave.bind(this), 
+                this.onCancel.bind(this)
+            );
         },
 
         _onRouteMatched: function (oEvent) {

@@ -230,6 +230,37 @@ sap.ui.define([
       
       // Infine, mostriamo fisicamente il popup rosso sullo schermo con il messaggio finale
       MessageBox.error(sMessage);
+    },
+
+    attachKeyboardShortcuts: function (fnSave, fnCancel) {
+        // Se c'è già un ascoltatore vecchio agganciato, lo rimuoviamo per non creare cloni
+        if (this._onKeyDown) {
+            document.removeEventListener("keydown", this._onKeyDown);
+        }
+
+        // Creiamo la funzione che intercetta i tasti
+        this._onKeyDown = function (oEvent) {
+            // 1. Intercetta Ctrl + S (Windows) o Cmd + S (Mac)
+            if ((oEvent.ctrlKey || oEvent.metaKey) && oEvent.key.toLowerCase() === "s") {
+                oEvent.preventDefault(); // Blocca IL BROWSER prima che faccia qualsiasi cosa!
+                oEvent.stopPropagation(); // Ferma la propagazione dell'evento
+                if (fnSave) {
+                    fnSave();
+                }
+            }
+            
+            // 2. Intercetta il tasto ESC (Escape)
+            if (oEvent.key === "Escape") {
+                oEvent.preventDefault();
+                oEvent.stopPropagation();
+                if (fnCancel) {
+                    fnCancel();
+                }
+            }
+        };
+
+        // MAGIA: Invece di agganciarci alla View, ci agganciamo all'intero Documento (infallibile)
+        document.addEventListener("keydown", this._onKeyDown, true);
     }
 
   });
