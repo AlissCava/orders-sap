@@ -75,12 +75,12 @@
                 </items>
             </Table>
             
-            <VBox class="myCustomCard sapUiSmallMargin" alignItems="End">
+            
+        </content><VBox class="myCustomCard sapUiSmallMargin" alignItems="End">
                 <HBox alignItems="Center" justifyContent="End" width="100%">
                     <Label id="lblTotale" text="{i18n>lblTotalValue}:" design="Bold" class="sapUiSmallMarginEnd" />
                     <ObjectNumber ariaLabelledBy="lblTotale" number="{ path: 'summaryModel>/TotalValue', formatter: '.formatter.currencyValue' }" state="Success" />
                 </HBox>
             </VBox>
-        </content>
     </Page>
 </mvc:View>

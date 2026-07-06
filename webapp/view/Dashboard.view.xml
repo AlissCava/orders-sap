@@ -9,8 +9,34 @@
     displayBlock="true">
 
     <Page title="{i18n>dashboardTitle}" class="sapUiContentPadding">
+        
+        <!-- RIGA DELLE MATTONELLE KPI (Novità!) -->
+        <HBox class="sapUiSmallMarginBottom" wrap="Wrap">
+            
+            <GenericTile class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="Totale Ordini" subheader="Aggiornato ad oggi">
+                <TileContent>
+                    <NumericContent value="{dashboardModel>/totalOrders}" icon="sap-icon://sys-box" valueColor="Neutral" />
+                </TileContent>
+            </GenericTile>
+
+            <GenericTile class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="Fatturato Globale" subheader="In Euro">
+                <TileContent>
+                    <NumericContent value="{dashboardModel>/totalRevenue}" icon="sap-icon://lead" valueColor="Good" />
+                </TileContent>
+            </GenericTile>
+
+            <GenericTile class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="Ordini in Attesa" subheader="Da gestire">
+                <TileContent>
+                    <NumericContent value="{dashboardModel>/pendingOrders}" icon="sap-icon://alert" valueColor="Error" />
+                </TileContent>
+            </GenericTile>
+
+        </HBox>
+
+        <!-- GRIGLIA GRAFICI -->
         <layout:Grid defaultSpan="L6 M6 S12">
             
+            <!-- GRAFICO A TORTA ESISTENTE -->
             <VBox class="myCustomCard sapUiSmallMargin">
                 <Title text="Stato Ordini" level="H2" class="sapUiSmallMargin"/>
                 <viz:VizFrame 
