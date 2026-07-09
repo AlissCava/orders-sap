@@ -2,54 +2,104 @@
     controllerName="orders.controller.OrderDetail"
     xmlns:mvc="sap.ui.core.mvc"
     xmlns="sap.m"
+    xmlns:uxap="sap.uxap"
+    xmlns:layout="sap.ui.layout"
     displayBlock="true">
 
     <Page title="{i18n>orderDetailTitle}" showNavButton="true" navButtonPress=".onNavBack">
         <content>
-            <ObjectHeader
-                class="myCustomCard sapUiResponsiveMargin"
-                title="{detailModel>/Cliente}"
-                number="{ path: 'detailModel>/ImportoTot', formatter: '.formatter.currencyValue' }"
-                intro="{i18n>lblOrderNo} {detailModel>/NumOrdine}">
+            
+            <uxap:ObjectPageLayout id="ObjectPageLayout" showTitleInHeaderContent="true" upperCaseAnchorBar="false">
                 
-                <statuses>
-                    <ObjectStatus 
-                        text="{detailModel>/StatoTxt}" 
-                        state="{ path: 'detailModel>/StatoTxt', formatter: '.formatter.statusState' }" 
-                        icon="{ path: 'detailModel>/StatoTxt', formatter: '.formatter.statusIcon' }" />
-                </statuses>
-            </ObjectHeader>
+                <uxap:headerTitle>
+                    <uxap:ObjectPageDynamicHeaderTitle>
+                        <uxap:expandedHeading>
+                            <Title text="{detailModel>/Cliente}" wrapping="true" class="sapUiSmallMarginEnd"/>
+                        </uxap:expandedHeading>
+                        <uxap:snappedHeading>
+                            <FlexBox wrap="Wrap" fitContainer="true" alignItems="Center">
+                                <Title text="{detailModel>/Cliente}" wrapping="true" class="sapUiSmallMarginEnd"/>
+                            </FlexBox>
+                        </uxap:snappedHeading>
+                    </uxap:ObjectPageDynamicHeaderTitle>
+                </uxap:headerTitle>
 
-            <Table id="lineItemsTable"
-                   items="{detailModel>/Articoli}" 
-                   class="myCustomCard sapUiResponsiveMargin"
-                   width="auto">
-                   
-                <headerToolbar>
-                    <Toolbar>
-                        <Title text="{i18n>orderItemsTitle}" level="H2"/>
-                    </Toolbar>
-                </headerToolbar>
-                
-                <columns>
-                    <Column><Text text="{i18n>colArticleCode}"/></Column>
-                    <Column><Text text="{i18n>colArticleName}"/></Column>
-                    <Column hAlign="End"><Text text="{i18n>colQuantity}"/></Column>
-                    <Column hAlign="End"><Text text="{i18n>colPrice}"/></Column>
-                </columns>
-                
-                <items>
-                    <ColumnListItem>
-                        <cells>
-                            <Text text="{detailModel>CodArticolo}" />
-                            <Text text="{detailModel>NomeArticolo}" />
-                            <Text text="{detailModel>QuantitaOrdine}" />
-                            
-                            <ObjectNumber number="{ path: 'detailModel>Importo', formatter: '.formatter.currencyValue' }" />
-                        </cells>
-                    </ColumnListItem>
-                </items>
-            </Table>
-        </content>
+                <uxap:headerContent>
+                    <FlexBox wrap="Wrap" fitContainer="true" alignItems="Stretch">
+                        
+                        <VBox justifyContent="Center" class="sapUiLargeMarginEnd sapUiSmallMarginBottom">
+                            <Label text="{i18n>lblOrderNo}" />
+                            <Text text="{detailModel>/NumOrdine}" />
+                        </VBox>
+                        
+                        <VBox justifyContent="Center" class="sapUiLargeMarginEnd sapUiSmallMarginBottom">
+                            <Label text="Importo Totale" />
+                            <ObjectNumber number="{ path: 'detailModel>/ImportoTot', formatter: '.formatter.currencyValue' }" state="Success" class="sapMObjectNumberLarge"/>
+                        </VBox>
+                        
+                        <VBox justifyContent="Center" class="sapUiLargeMarginEnd sapUiSmallMarginBottom">
+                            <Label text="Stato" />
+                            <ObjectStatus 
+                                text="{detailModel>/StatoTxt}" 
+                                state="{ path: 'detailModel>/StatoTxt', formatter: '.formatter.statusState' }" 
+                                icon="{ path: 'detailModel>/StatoTxt', formatter: '.formatter.statusIcon' }" />
+                        </VBox>
+                        
+                    </FlexBox>
+                </uxap:headerContent>
+
+                <uxap:sections>
+                    
+                    <uxap:ObjectPageSection titleUppercase="false" title="Informazioni Generali">
+                        <uxap:subSections>
+                            <uxap:ObjectPageSubSection>
+                                <uxap:blocks>
+                                    <MessageStrip text="Qui potremo aggiungere ulteriori dettagli generali sull'ordine." type="Information" showIcon="true" class="sapUiSmallMargin"/>
+                                </uxap:blocks>
+                            </uxap:ObjectPageSubSection>
+                        </uxap:subSections>
+                    </uxap:ObjectPageSection>
+
+                    <uxap:ObjectPageSection titleUppercase="false" title="Articoli dell'Ordine">
+                        <uxap:subSections>
+                            <uxap:ObjectPageSubSection>
+                                <uxap:blocks>
+                                    
+                                    <Table id="lineItemsTable"
+                                           items="{detailModel>/Articoli}" 
+                                           width="auto">
+                                           
+                                        <headerToolbar>
+                                            <Toolbar>
+                                                <Title text="{i18n>orderItemsTitle}" level="H2"/>
+                                            </Toolbar>
+                                        </headerToolbar>
+                                        
+                                        <columns>
+                                            <Column><Text text="{i18n>colArticleCode}"/></Column>
+                                            <Column><Text text="{i18n>colArticleName}"/></Column>
+                                            <Column hAlign="End"><Text text="{i18n>colQuantity}"/></Column>
+                                            <Column hAlign="End"><Text text="{i18n>colPrice}"/></Column>
+                                        </columns>
+                                        
+                                        <items>
+                                            <ColumnListItem>
+                                                <cells>
+                                                    <Text text="{detailModel>CodArticolo}" />
+                                                    <Text text="{detailModel>NomeArticolo}" />
+                                                    <Text text="{detailModel>QuantitaOrdine}" />
+                                                    <ObjectNumber number="{ path: 'detailModel>Importo', formatter: '.formatter.currencyValue' }" />
+                                                </cells>
+                                            </ColumnListItem>
+                                        </items>
+                                    </Table>
+                                    </uxap:blocks>
+                            </uxap:ObjectPageSubSection>
+                        </uxap:subSections>
+                    </uxap:ObjectPageSection>
+
+                </uxap:sections>
+            </uxap:ObjectPageLayout>
+            </content>
     </Page>
 </mvc:View>
